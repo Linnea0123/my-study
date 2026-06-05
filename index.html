@@ -8,6 +8,7 @@
     <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
     <style>
+        
         * {
             margin: 0;
             padding: 0;
@@ -230,27 +231,35 @@
             text-align: center;
         }
 
-        .records-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 18px;
-        }
-        .section-title {
-            font-size: 20px;
-            font-weight: 600;
-            color: #1c1c1e;
-        }
-        .btn-add-record {
-            background: #61A2DA;
-            border: none;
-            padding: 8px 18px;
-            border-radius: 8px;
-            font-weight: 500;
-            font-size: 14px;
-            color: white;
-            cursor: pointer;
-        }
+       
+.records-header {
+    display: flex;
+    justify-content: flex-end;   /* 按钮右对齐 */
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 0;
+    min-height: 32px;
+}
+
+.btn-add-record {
+    background: #61A2DA;
+    border: none;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 12px;
+    color: white;
+    cursor: pointer;
+}
+
+.section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1c1c1e;
+    line-height: 1;
+}
+
+
         .records-list {
             display: flex;
             flex-direction: column;
@@ -293,10 +302,11 @@
             color: #1c1c1e;
         }
         .original-text {
-            font-size: 16px;
-            font-weight: 500;
-            color: #1c1c1e;
-        }
+    font-size: 18px;
+    font-weight: 500;
+    color: #1c1c1e;
+    line-height: 1.8;
+}
         .gray-text {
             color: #8e8e93;
         }
@@ -494,6 +504,191 @@
             .two-columns { flex-direction: column; }
             .sidebar { border-right: none; border-bottom: 0.5px solid #e5e5ea; }
         }
+
+        /* ========== 字号样式 ========== */
+.ql-editor .ql-size-12px { font-size: 12px !important; }
+.ql-editor .ql-size-14px { font-size: 14px !important; }
+.ql-editor .ql-size-16px { font-size: 16px !important; }
+.ql-editor .ql-size-18px { font-size: 18px !important; }
+.ql-editor .ql-size-20px { font-size: 20px !important; }
+.ql-editor .ql-size-24px { font-size: 24px !important; }
+.ql-editor .ql-size-28px { font-size: 28px !important; }
+.ql-editor .ql-size-32px { font-size: 32px !important; }
+
+
+/* ========== 行距样式 - 通过 CSS 类生效 ========== */
+.ql-editor .ql-line-height-lh12 { line-height: 1.2 !important; }
+.ql-editor .ql-line-height-lh14 { line-height: 1.4 !important; }
+.ql-editor .ql-line-height-lh16 { line-height: 1.6 !important; }
+.ql-editor .ql-line-height-lh18 { line-height: 1.8 !important; }
+.ql-editor .ql-line-height-lh20 { line-height: 2.0 !important; }
+.ql-editor .ql-line-height-lh25 { line-height: 2.5 !important; }
+
+/* ========== 行距下拉菜单样式 ========== */
+.ql-picker.ql-line-height {
+    width: 75px !important;
+}
+.ql-picker.ql-line-height .ql-picker-label {
+    padding-right: 22px !important;
+}
+.ql-picker.ql-line-height .ql-picker-label::after {
+    right: 6px !important;
+}
+.ql-picker.ql-line-height .ql-picker-label::before {
+    content: attr(data-value);
+}
+.ql-picker.ql-line-height .ql-picker-item::before {
+    content: attr(data-value);
+}
+
+/* 默认样式 */
+.ql-editor { font-size: 14px; line-height: 1.6; }
+/* ========== 下拉菜单显示 ========== */
+.ql-picker.ql-size .ql-picker-label[data-value="12px"]::before,
+.ql-picker.ql-size .ql-picker-item[data-value="12px"]::before { content: '12px'; }
+.ql-picker.ql-size .ql-picker-label[data-value="14px"]::before,
+.ql-picker.ql-size .ql-picker-item[data-value="14px"]::before { content: '14px'; }
+.ql-picker.ql-size .ql-picker-label[data-value="16px"]::before,
+.ql-picker.ql-size .ql-picker-item[data-value="16px"]::before { content: '16px'; }
+.ql-picker.ql-size .ql-picker-label[data-value="18px"]::before,
+.ql-picker.ql-size .ql-picker-item[data-value="18px"]::before { content: '18px'; }
+.ql-picker.ql-size .ql-picker-label[data-value="20px"]::before,
+.ql-picker.ql-size .ql-picker-item[data-value="20px"]::before { content: '20px'; }
+.ql-picker.ql-size .ql-picker-label[data-value="24px"]::before,
+.ql-picker.ql-size .ql-picker-item[data-value="24px"]::before { content: '24px'; }
+.ql-picker.ql-size .ql-picker-label[data-value="28px"]::before,
+.ql-picker.ql-size .ql-picker-item[data-value="28px"]::before { content: '28px'; }
+.ql-picker.ql-size .ql-picker-label[data-value="32px"]::before,
+.ql-picker.ql-size .ql-picker-item[data-value="32px"]::before { content: '32px'; }
+
+.ql-picker.ql-line-height .ql-picker-label::before,
+.ql-picker.ql-line-height .ql-picker-item::before {
+    content: attr(data-value);
+}
+
+/* 默认样式 */
+.ql-editor { font-size: 14px; line-height: 1.6; }
+
+
+
+/* ========== 主界面笔记显示的行距样式 ========== */
+.record-full-content [style*="line-height: 1.2"] { line-height: 1.2 !important; }
+.record-full-content [style*="line-height: 1.4"] { line-height: 1.4 !important; }
+.record-full-content [style*="line-height: 1.6"] { line-height: 1.6 !important; }
+.record-full-content [style*="line-height: 1.8"] { line-height: 1.8 !important; }
+.record-full-content [style*="line-height: 2.0"] { line-height: 2.0 !important; }
+.record-full-content [style*="line-height: 2.5"] { line-height: 2.5 !important; }
+
+/* Quill 编辑器的行距类样式（主界面也支持） */
+.ql-line-height-lh12, .ql-editor .ql-line-height-lh12 { line-height: 1.2 !important; }
+.ql-line-height-lh14, .ql-editor .ql-line-height-lh14 { line-height: 1.4 !important; }
+.ql-line-height-lh16, .ql-editor .ql-line-height-lh16 { line-height: 1.6 !important; }
+.ql-line-height-lh18, .ql-editor .ql-line-height-lh18 { line-height: 1.8 !important; }
+.ql-line-height-lh20, .ql-editor .ql-line-height-lh20 { line-height: 2.0 !important; }
+.ql-line-height-lh25, .ql-editor .ql-line-height-lh25 { line-height: 2.5 !important; }
+
+/* 通用行距样式 */
+.record-full-content .full-text {
+    line-height: inherit;
+}
+
+
+/* ========== 可收缩展开框样式 ========== */
+.collapsible-box {
+    margin: 8px 0;
+    border: 1px solid #e5e5ea;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.collapsible-header {
+    padding: 10px 16px;
+    background: #f6f6f9;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: #61A2DA;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    user-select: none;
+}
+
+.collapsible-header:hover {
+    background: #efeff4;
+}
+
+.collapse-arrow {
+    font-size: 10px;
+    transition: transform 0.2s;
+    color: #8e8e93;
+}
+
+.collapsible-content {
+    padding: 12px 16px;
+    display: block;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* 滚动条样式 */
+.collapsible-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.collapsible-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.collapsible-content::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.collapsible-content .full-text {
+    margin-bottom: 0;
+}
+
+/* 记录卡片头部 - 日期和删除按钮同行 */
+.record-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.record-header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.delete-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    color: #8e8e93;
+    padding: 0 4px;
+    transition: all 0.2s;
+}
+
+
+
+/* 原文可点击编辑样式 */
+.original-box {
+    cursor: pointer;
+    transition: background 0.1s;
+    border-radius: 8px;
+    padding: 4px;
+    margin: -4px;
+}
+
+
+
+
     </style>
 </head>
 <body>
@@ -506,6 +701,7 @@
                 <button class="classic-btn" data-classic="shijing">诗经</button>
                 <button class="classic-btn" data-classic="tangshi">唐诗</button>
                 <button class="classic-btn" data-classic="songci">宋词</button>
+           
             </div>
         </div>
         <div class="header-actions">
@@ -534,7 +730,7 @@
         </div>
         <div class="main-content">
             <div class="records-header">
-                <div class="section-title">笔记</div>
+                
                 <button id="openAddModalBtn" class="btn-add-record">新增</button>
             </div>
             <div id="recordsContainer" class="records-list"></div>
@@ -547,15 +743,32 @@
 <!-- 笔记模态窗 -->
 <div id="noteModal" class="modal-mask">
     <div class="modal-container">
-        <div class="modal-header"><h3 id="modalTitle">笔记</h3><button class="close-modal" id="closeModalBtn">&times;</button></div>
+        <div class="modal-header">
+            <h3 id="modalTitle">笔记</h3>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <button id="modalConfirmBtn" class="btn-confirm" style="padding: 6px 14px; font-size: 13px;">保存</button>
+                <button class="close-modal" id="closeModalBtn">&times;</button>
+            </div>
+        </div>
         <div class="modal-body">
             <div class="four-fields">
-                <div class="field-group"><div class="field-label">原文</div><div id="editorOriginal" class="quill-editor"></div></div>
-                <div class="field-group"><div class="field-label">注释</div><div id="editorNotes" class="quill-editor"></div></div>
-                <div class="field-group"><div class="field-label">补充</div><div id="editorSupplement" class="quill-editor"></div></div>
-                <div class="field-group"><div class="field-label">译文</div><div id="editorTranslation" class="quill-editor"></div></div>
+                <div class="field-group">
+                    <div class="field-label">原文</div>
+                    <div id="editorOriginal" class="quill-editor"></div>
+                </div>
+                <div class="field-group">
+                    <div class="field-label">注释</div>
+                    <div id="editorNotes" class="quill-editor"></div>
+                </div>
+                <div class="field-group">
+                    <div class="field-label">补充</div>
+                    <div id="editorSupplement" class="quill-editor"></div>
+                </div>
+                <div class="field-group">
+                    <div class="field-label">译文</div>
+                    <div id="editorTranslation" class="quill-editor"></div>
+                </div>
             </div>
-            <div class="modal-actions"><button id="modalCancelBtn" class="btn-cancel">取消</button><button id="modalConfirmBtn" class="btn-confirm">保存</button></div>
         </div>
     </div>
 </div>
@@ -590,11 +803,15 @@
 <script>
     // 多经典数据结构
     const defaultTrees = {
-        lunyu: [{ id: "l1", name: "学而篇", children: [] }, { id: "l2", name: "为政篇", children: [] }],
-        shijing: [{ id: "s1", name: "国风", children: [{ id: "s1-1", name: "周南", children: [{ id: "s1-1-1", name: "关雎" }] }] }],
-        tangshi: [{ id: "t1", name: "初唐", children: [{ id: "t1-1", name: "王勃", children: [{ id: "t1-1-1", name: "送杜少府之任蜀州" }] }] }, { id: "t2", name: "盛唐", children: [{ id: "t2-1", name: "李白", children: [{ id: "t2-1-1", name: "静夜思" }] }] }],
-        songci: [{ id: "c1", name: "婉约派", children: [{ id: "c1-1", name: "李清照", children: [{ id: "c1-1-1", name: "如梦令" }] }] }, { id: "c2", name: "豪放派", children: [{ id: "c2-1", name: "苏轼", children: [{ id: "c2-1-1", name: "念奴娇·赤壁怀古" }] }] }]
-    };
+    lunyu: [{ id: "l1", name: "学而篇", children: [] }, { id: "l2", name: "为政篇", children: [] }],
+    shijing: [{ id: "s1", name: "国风", children: [{ id: "s1-1", name: "周南", children: [{ id: "s1-1-1", name: "关雎" }] }] }],
+    tangshi: [{ id: "t1", name: "初唐", children: [{ id: "t1-1", name: "王勃", children: [{ id: "t1-1-1", name: "送杜少府之任蜀州" }] }] }, { id: "t2", name: "盛唐", children: [{ id: "t2-1", name: "李白", children: [{ id: "t2-1-1", name: "静夜思" }] }] }],
+    songci: [{ id: "c1", name: "婉约派", children: [{ id: "c1-1", name: "李清照", children: [{ id: "c1-1-1", name: "如梦令" }] }] }, { id: "c2", name: "豪放派", children: [{ id: "c2-1", name: "苏轼", children: [{ id: "c2-1-1", name: "念奴娇·赤壁怀古" }] }] }],
+
+
+
+};
+    
     let trees = JSON.parse(JSON.stringify(defaultTrees));
     let currentClassic = 'lunyu';
     let currentChapter = "学而篇";
@@ -685,27 +902,158 @@
     function saveCurrent() { localStorage.setItem('currentClassic', currentClassic); localStorage.setItem('currentChapter', currentChapter); }
     function loadCurrent() { const c = localStorage.getItem('currentClassic'); if (c && trees[c]) currentClassic = c; const ch = localStorage.getItem('currentChapter'); if (ch) currentChapter = ch; }
 
-    function renderRecords() {
-        const container = document.getElementById('recordsContainer');
-        const filtered = notes.filter(n => n.classic === currentClassic && n.chapter === currentChapter);
-        if (!filtered.length) { container.innerHTML = '<div class="empty-msg">暂无笔记</div>'; return; }
-        container.innerHTML = '';
-        filtered.forEach(r => {
-            const card = document.createElement('div'); card.className = 'record-card';
-            card.innerHTML = `<div class="record-header"><span class="record-title">${escapeHtml(r.chapter)}</span><span class="record-meta">${new Date(r.updatedAt).toLocaleDateString()}</span></div>
-                <div class="record-full-content"><div class="full-text original-text">${r.original || '—'}</div><div class="full-text gray-text notes-section">${r.notes || '—'}</div><div class="full-text">${r.supplement || '—'}</div><div class="full-text">${r.translation || '—'}</div></div>
-                <div class="record-actions"><button class="edit-btn" data-id="${r.id}">编辑</button><button class="delete-btn" data-id="${r.id}">删除</button></div>`;
-            container.appendChild(card);
+function renderRecords() {
+    const container = document.getElementById('recordsContainer');
+    const filtered = notes.filter(n => n.classic === currentClassic && n.chapter === currentChapter);
+    if (!filtered.length) { container.innerHTML = '<div class="empty-msg">暂无笔记</div>'; return; }
+    container.innerHTML = '';
+    filtered.forEach(r => {
+        const card = document.createElement('div'); card.className = 'record-card';
+        
+        // 构建内容HTML
+        let contentHtml = '<div class="record-full-content">';
+        
+        // 原文区域 - 始终显示，点击可编辑
+        if (r.original && r.original !== '<p><br></p>' && r.original !== '—') {
+            contentHtml += `<div class="original-box" data-id="${r.id}" data-field="original"><div class="full-text original-text">${r.original}</div></div>`;
+        }
+        
+        // 注释区域 - 可收缩（默认收起）
+        if (r.notes && r.notes !== '<p><br></p>' && r.notes !== '—') {
+            const noteId = 'note_' + r.id;
+            contentHtml += `
+                <div class="collapsible-box">
+                    <div class="collapsible-header" onclick="toggleCollapsible('${noteId}')">
+                        <span class="collapse-arrow">▶</span> 注释
+                    </div>
+                    <div id="${noteId}" class="collapsible-content" style="display: none;">
+                        <div class="full-text gray-text">${r.notes}</div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // 补充区域 - 可收缩（默认收起）
+        if (r.supplement && r.supplement !== '<p><br></p>' && r.supplement !== '—') {
+            const supplementId = 'supplement_' + r.id;
+            contentHtml += `
+                <div class="collapsible-box">
+                    <div class="collapsible-header" onclick="toggleCollapsible('${supplementId}')">
+                        <span class="collapse-arrow">▶</span> 补充
+                    </div>
+                    <div id="${supplementId}" class="collapsible-content" style="display: none;">
+                        <div class="full-text">${r.supplement}</div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // 译文区域 - 可收缩（默认收起）
+        if (r.translation && r.translation !== '<p><br></p>' && r.translation !== '—') {
+            const translationId = 'translation_' + r.id;
+            contentHtml += `
+                <div class="collapsible-box">
+                    <div class="collapsible-header" onclick="toggleCollapsible('${translationId}')">
+                        <span class="collapse-arrow">▶</span> 译文
+                    </div>
+                    <div id="${translationId}" class="collapsible-content" style="display: none;">
+                        <div class="full-text">${r.translation}</div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        contentHtml += '</div>';
+        
+        // 卡片头部：标题 + 日期 + 删除按钮（×）
+        card.innerHTML = `
+            <div class="record-header">
+                <span class="record-title">${escapeHtml(r.chapter)}</span>
+                <div class="record-header-right">
+                    <span class="record-meta">${new Date(r.updatedAt).toLocaleDateString()}</span>
+                    <button class="delete-icon" data-id="${r.id}" title="删除">×</button>
+                </div>
+            </div>
+            ${contentHtml}
+        `;
+        container.appendChild(card);
+    });
+    
+    // 点击原文直接编辑
+    document.querySelectorAll('.original-box').forEach(box => {
+        box.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = parseInt(box.dataset.id);
+            openEditModal(id);
         });
-        document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', e => openEditModal(parseInt(btn.dataset.id))));
-        document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', e => { if(confirm('删除笔记？')) { notes = notes.filter(n => n.id !== parseInt(btn.dataset.id)); saveNotes(); renderRecords(); showMsg('已删除'); } }));
+    });
+    
+    // 删除按钮事件
+    document.querySelectorAll('.delete-icon').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if(confirm('删除笔记？')) {
+                const id = parseInt(btn.dataset.id);
+                notes = notes.filter(n => n.id !== id);
+                saveNotes();
+                renderRecords();
+                showMsg('已删除');
+            }
+        });
+    });
+}
+// 收缩/展开函数
+window.toggleCollapsible = function(id) {
+    const content = document.getElementById(id);
+    const header = content?.previousElementSibling;
+    const arrow = header?.querySelector('.collapse-arrow');
+    if (content) {
+        if (content.style.display === 'none') {
+            content.style.display = 'block';
+            if (arrow) arrow.textContent = '▼';
+        } else {
+            content.style.display = 'none';
+            if (arrow) arrow.textContent = '▶';
+        }
     }
+}
 
-    function openAddModal() { editingId = null; resetQuill(); document.getElementById('modalTitle').innerText = '笔记'; document.getElementById('noteModal').classList.add('active'); }
-    function openEditModal(id) { const r = notes.find(n => n.id === id); if(!r) return; editingId = id; setQuill(r); document.getElementById('modalTitle').innerText = '编辑笔记'; document.getElementById('noteModal').classList.add('active'); }
+
+
+
+
+
+function openAddModal() { 
+    editingId = null; 
+    resetQuill(); 
+    
+    // 设置原文默认字号 18px、行距 1.8
+    setTimeout(() => {
+        if (quillOriginal) {
+            quillOriginal.format('size', '18px');
+            quillOriginal.format('line-height', '1.8');
+        }
+    }, 100);
+    
+    document.getElementById('modalTitle').innerText = '笔记'; 
+    document.getElementById('noteModal').classList.add('active'); 
+}
+
+function openEditModal(id) { const r = notes.find(n => n.id === id); if(!r) return; editingId = id; setQuill(r); document.getElementById('modalTitle').innerText = '编辑笔记'; document.getElementById('noteModal').classList.add('active'); }
     function closeModal(id) { document.getElementById(id).classList.remove('active'); editingId = null; }
-    function resetQuill() { quillOriginal.root.innerHTML = ''; quillNotes.root.innerHTML = ''; quillSupplement.root.innerHTML = ''; quillTranslation.root.innerHTML = ''; }
-    function setQuill(r) { quillOriginal.root.innerHTML = r.original || ''; quillNotes.root.innerHTML = r.notes || ''; quillSupplement.root.innerHTML = r.supplement || ''; quillTranslation.root.innerHTML = r.translation || ''; }
+
+function resetQuill() { 
+    quillOriginal.root.innerHTML = ''; 
+    quillNotes.root.innerHTML = ''; 
+    quillSupplement.root.innerHTML = ''; 
+    quillTranslation.root.innerHTML = ''; 
+    
+    // 重新设置原文编辑器默认样式
+    quillOriginal.root.style.fontSize = '18px';
+    quillOriginal.root.style.lineHeight = '1.8';
+}
+
+function setQuill(r) { quillOriginal.root.innerHTML = r.original || ''; quillNotes.root.innerHTML = r.notes || ''; quillSupplement.root.innerHTML = r.supplement || ''; quillTranslation.root.innerHTML = r.translation || ''; }
     function getQuill() { return { original: quillOriginal.root.innerHTML, notes: quillNotes.root.innerHTML, supplement: quillSupplement.root.innerHTML, translation: quillTranslation.root.innerHTML }; }
     function saveNote() {
         const { original, notes: nt, supplement, translation } = getQuill();
@@ -740,13 +1088,49 @@
 
     function switchClassic(type) { if(type === currentClassic) return; currentClassic = type; const leaves = getAllLeafNodes(getCurrentTree()); currentChapter = leaves[0]?.name || ''; saveCurrent(); updateClassicUI(); renderTree(); renderRecords(); showMsg(`切换到${type}`); }
     function updateClassicUI() { document.querySelectorAll('.classic-btn').forEach(btn => { if(btn.dataset.classic === currentClassic) btn.classList.add('active'); else btn.classList.remove('active'); }); }
-    function initQuill() { quillOriginal = new Quill('#editorOriginal', { theme: 'snow' }); quillNotes = new Quill('#editorNotes', { theme: 'snow' }); quillSupplement = new Quill('#editorSupplement', { theme: 'snow' }); quillTranslation = new Quill('#editorTranslation', { theme: 'snow' }); }
-    function showMsg(msg) { const d = document.getElementById('statusMsg'); d.innerText = msg; setTimeout(() => { if(d) d.innerText = ''; }, 2000); }
+function initQuill() {
+    // ========== 自定义字号 ==========
+    const Size = Quill.import('attributors/style/size');
+    Size.whitelist = ['12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px'];
+    Quill.register(Size, true);
+
+    // ========== 自定义行距 ==========
+    const LineHeightStyle = Quill.import('attributors/style/line-height');
+    if (LineHeightStyle) {
+        LineHeightStyle.whitelist = ['1.2', '1.4', '1.6', '1.8', '2.0', '2.5'];
+        Quill.register(LineHeightStyle, true);
+    }
+
+    const toolbarOptions = [
+        [{ 'size': ['12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px'] }],
+        [{ 'line-height': ['1.2', '1.4', '1.6', '1.8', '2.0', '2.5'] }],
+        ['bold', 'italic', 'underline'],
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+        ['clean']
+    ];
+
+    const config = {
+        theme: 'snow',
+        modules: { toolbar: toolbarOptions }
+    };
+
+    quillOriginal = new Quill('#editorOriginal', config);
+    quillNotes = new Quill('#editorNotes', config);
+    quillSupplement = new Quill('#editorSupplement', config);
+    quillTranslation = new Quill('#editorTranslation', config);
+
+    // ========== 设置原文编辑器默认字号 18px、行距 1.8 ==========
+    quillOriginal.root.style.fontSize = '18px';
+    quillOriginal.root.style.lineHeight = '1.8';
+}
+
+
+function showMsg(msg) { const d = document.getElementById('statusMsg'); d.innerText = msg; setTimeout(() => { if(d) d.innerText = ''; }, 2000); }
 
     function bindEvents() {
         document.getElementById('openAddModalBtn').addEventListener('click', openAddModal);
         document.getElementById('closeModalBtn').addEventListener('click', () => closeModal('noteModal'));
-        document.getElementById('modalCancelBtn').addEventListener('click', () => closeModal('noteModal'));
+        
         document.getElementById('modalConfirmBtn').addEventListener('click', saveNote);
         document.getElementById('editCatalogBtn').addEventListener('click', () => { renderCatalogTree(); document.getElementById('catalogModal').classList.add('active'); });
         document.getElementById('closeCatalogBtn').addEventListener('click', () => closeModal('catalogModal'));
@@ -754,10 +1138,97 @@
         document.getElementById('settingsBtn').addEventListener('click', () => document.getElementById('settingsModal').classList.add('active'));
         document.getElementById('closeSettingsBtn').addEventListener('click', () => closeModal('settingsModal'));
         document.querySelectorAll('.classic-btn').forEach(btn => btn.addEventListener('click', () => switchClassic(btn.dataset.classic)));
-        document.querySelectorAll('.modal-mask').forEach(mask => mask.addEventListener('click', (e) => { if(e.target === mask) mask.classList.remove('active'); }));
-        document.getElementById('saveToGistBtn')?.addEventListener('click', () => alert('Gist同步功能需配置Token后实现'));
-        document.getElementById('loadFromGistBtn')?.addEventListener('click', () => alert('从Gist恢复功能需配置Token后实现'));
+        document.getElementById('saveToGistBtn')?.addEventListener('click', saveToGist);
+document.getElementById('loadFromGistBtn')?.addEventListener('click', loadFromGist);
+
     }
+
+
+
+    // ==================== Gist 同步功能 ====================
+async function saveToGist() {
+    const token = document.getElementById('githubToken').value;
+    const gistId = document.getElementById('gistIdInput').value;
+    
+    if (!token) { showSyncStatus('请输入 GitHub Token', 'error'); return; }
+    if (!gistId) { showSyncStatus('请输入 Gist ID', 'error'); return; }
+
+    const backupData = {
+        version: '1.0',
+        backupTime: new Date().toISOString(),
+        notes: notes,
+        trees: trees
+    };
+    const content = JSON.stringify(backupData, null, 2);
+
+    showSyncStatus('正在保存到 Gist...', 'info');
+
+    try {
+        const getRes = await fetch(`https://api.github.com/gists/${gistId}`, {
+            headers: { 'Authorization': `token ${token}` }
+        });
+        if (!getRes.ok) throw new Error(`获取失败: ${getRes.status}`);
+        const gistData = await getRes.json();
+        const filename = Object.keys(gistData.files)[0] || 'yanxuelu_backup.json';
+        
+        const updateRes = await fetch(`https://api.github.com/gists/${gistId}`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `token ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                files: { [filename]: { content: content } }
+            })
+        });
+        if (!updateRes.ok) throw new Error(`更新失败: ${updateRes.status}`);
+        
+        showSyncStatus('✅ 同步成功！数据已保存到 Gist', 'success');
+        localStorage.setItem('gistId', gistId);
+    } catch (err) {
+        console.error(err);
+        showSyncStatus('❌ 同步失败: ' + err.message, 'error');
+    }
+}
+
+async function loadFromGist() {
+    const token = document.getElementById('githubToken').value;
+    const gistId = document.getElementById('gistIdInput').value;
+    
+    if (!token) { showSyncStatus('请输入 GitHub Token', 'error'); return; }
+    if (!gistId) { showSyncStatus('请输入 Gist ID', 'error'); return; }
+
+    showSyncStatus('正在从 Gist 恢复...', 'info');
+
+    try {
+        const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+            headers: { 'Authorization': `token ${token}` }
+        });
+        if (!res.ok) throw new Error(`获取失败: ${res.status}`);
+        const gistData = await res.json();
+        const firstFile = gistData.files[Object.keys(gistData.files)[0]];
+        if (!firstFile || !firstFile.content) throw new Error('Gist 中没有数据文件');
+        
+        const backupData = JSON.parse(firstFile.content);
+        
+        if (backupData.notes) {
+            notes = backupData.notes;
+            saveNotes();
+        }
+        if (backupData.trees) {
+            trees = backupData.trees;
+            saveTrees();
+        }
+        
+        renderTree();
+        renderRecords();
+        showSyncStatus('✅ 恢复成功！数据已从 Gist 加载', 'success');
+    } catch (err) {
+        console.error(err);
+        showSyncStatus('❌ 恢复失败: ' + err.message, 'error');
+    }
+}
+
 
     function init() { loadTrees(); loadNotes(); loadCurrent(); initQuill(); bindEvents(); updateClassicUI(); renderTree(); renderRecords(); showMsg('就绪'); }
     init();
