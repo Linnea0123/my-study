@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <title>研学录 · 经典文库</title>
+    <!-- Quill 富文本 -->
+    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f5f5f7;
+            font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', system-ui, sans-serif;
+            color: #1c1c1e;
+            line-height: 1.4;
+            padding: 20px 24px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+            overflow: hidden;
+        }
+
+        .header {
+            padding: 12px 24px;
+            background: #ffffff;
+            border-bottom: 0.5px solid #e5e5ea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: baseline;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .header-left h1 {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1c1c1e;
+            letter-spacing: -0.3px;
+        }
+
+        .classic-tabs {
+            display: flex;
+            gap: 4px;
+            background: #e5e5ea;
+            padding: 3px;
+            border-radius: 10px;
+        }
+
+        .classic-btn {
+            padding: 6px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 8px;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            font-family: inherit;
+            color: #3a3a44;
+            transition: all 0.2s;
+        }
+
+        .classic-btn.active {
+            background: #ffffff;
+            color: #61A2DA;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .icon-btn:hover {
+            background: #e5e5ea;
+        }
+        .icon-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: #8e8e93;
+        }
+
+        .two-columns {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .sidebar {
+            flex: 0.5;
+            min-width: 260px;
+            background: #ffffff;
+            border-right: 0.5px solid #e5e5ea;
+            padding: 20px 16px 24px;
+        }
+
+        .main-content {
+            flex: 2.5;
+            min-width: 320px;
+            background: #f9f9fb;
+            padding: 20px 24px 28px;
+        }
+
+        .chapters-tree {
+            margin-bottom: 16px;
+            background: transparent;
+            overflow-y: auto;
+            max-height: 55vh;
+        }
+
+        .tree-node {
+            user-select: none;
+        }
+
+        /* 一级目录：无缩进 */
+        .level-1 {
+            font-size: 15px;
+            font-weight: 500;
+            padding: 10px 12px;
+            margin: 2px 0;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 8px;
+        }
+
+        /* 二级目录：缩进一格 (16px) */
+        .level-2 {
+            font-size: 14px;
+            font-weight: 450;
+            padding: 8px 12px;
+            margin-left: 16px;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 8px;
+        }
+
+        /* 三级目录：缩进两格 (32px) */
+        .level-3 {
+            font-size: 14px;
+            font-weight: 400;
+            padding: 8px 12px;
+            margin-left: 32px;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 8px;
+        }
+
+        .level-1:hover, .level-2:hover, .level-3:hover {
+            background: #f2f2f6;
+        }
+
+        .active-chapter {
+            background: #e9e9ef !important;
+            color: #61A2DA;
+            font-weight: 500;
+        }
+
+        .node-title {
+            flex: 1;
+        }
+
+     .chevron {
+    font-size: 16px;        /* 12px → 16px */
+    font-weight: 500;       /* 稍微加粗，更醒目 */
+    color: #8e8e93;
+    transition: transform 0.2s;
+    margin-right: 10px;
+    width: 22px;            /* 16px → 22px */
+    display: inline-block;
+    text-align: center;
+}
+        .chevron.open {
+            transform: rotate(90deg);
+        }
+        .children-container {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.2s ease;
+        }
+        .children-container.open {
+            max-height: 800px;
+        }
+
+        .current-chapter-badge {
+            margin-top: 12px;
+            font-size: 12px;
+            color: #8e8e93;
+            background: #f2f2f6;
+            padding: 8px 12px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .records-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 18px;
+        }
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1c1c1e;
+        }
+        .btn-add-record {
+            background: #61A2DA;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            color: white;
+            cursor: pointer;
+        }
+        .records-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 62vh;
+            overflow-y: auto;
+        }
+        .record-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px;
+            border: 0.5px solid #e5e5ea;
+        }
+        .record-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 10px;
+        }
+        .record-title {
+            font-weight: 510;
+            font-size: 15px;
+            color: #61A2DA;
+            background: #f2f2f6;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+        .record-meta {
+            font-size: 11px;
+            color: #8e8e93;
+        }
+        .record-full-content {
+            margin-top: 8px;
+        }
+        .full-text {
+            font-size: 14px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            margin-bottom: 12px;
+            color: #1c1c1e;
+        }
+        .original-text {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1c1c1e;
+        }
+        .gray-text {
+            color: #8e8e93;
+        }
+        .notes-section {
+            margin-top: 16px;
+        }
+        .record-actions {
+            display: flex;
+            gap: 16px;
+            justify-content: flex-end;
+            margin-top: 12px;
+        }
+        .edit-btn, .delete-btn {
+            background: none;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 4px 12px;
+            border-radius: 6px;
+            color: #61A2DA;
+        }
+        .delete-btn {
+            color: #ff3b30;
+        }
+        .empty-msg {
+            text-align: center;
+            color: #aeaeb2;
+            padding: 48px 20px;
+            font-size: 14px;
+        }
+        .status-bar {
+            margin-top: 20px;
+            font-size: 12px;
+            text-align: center;
+            color: #8e8e93;
+            background: #f2f2f6;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        footer {
+            text-align: center;
+            background: #ffffff;
+            padding: 14px;
+            font-size: 11px;
+            color: #8e8e93;
+            border-top: 0.5px solid #e5e5ea;
+        }
+
+        .modal-mask {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: 0.2s;
+        }
+        .modal-mask.active { visibility: visible; opacity: 1; }
+        .modal-container {
+            background: #ffffff;
+            border-radius: 14px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        .edit-modal .modal-container { max-width: 500px; }
+        .settings-modal .modal-container { max-width: 480px; }
+        .modal-header {
+            padding: 18px 20px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 0.5px solid #e5e5ea;
+            background: white;
+            position: sticky;
+            top: 0;
+        }
+        .modal-header h3 { font-size: 17px; font-weight: 590; }
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #8e8e93;
+        }
+        .modal-body { padding: 20px; }
+        .four-fields { display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px; }
+        .field-group {
+            border: 0.5px solid #e5e5ea;
+            border-radius: 12px;
+            background: #ffffff;
+            overflow: hidden;
+        }
+        .field-label {
+            background: #f9f9fb;
+            padding: 10px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            border-bottom: 0.5px solid #e5e5ea;
+            color: #3a3a44;
+        }
+        .quill-editor .ql-container { min-height: 100px; font-size: 14px; border: none; }
+        .quill-editor .ql-toolbar { border: none; border-bottom: 0.5px solid #e5e5ea; background: #fafafc; }
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
+        .btn-cancel, .btn-confirm {
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-cancel { background: #e5e5ea; color: #1c1c1e; }
+        .btn-confirm { background: #61A2DA; color: white; }
+
+        .catalog-children {
+            border-left: 1px dashed #e5e5ea;
+            margin-left: 28px;
+            padding-left: 8px;
+        }
+        .edit-tree-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 8px;
+            border-bottom: 0.5px solid #e5e5ea;
+        }
+        .edit-tree-item:hover { background: #f2f2f6; }
+        .catalog-chevron { cursor: pointer; font-size: 10px; width: 16px; display: inline-block; }
+        .edit-tree-actions { display: flex; gap: 4px; align-items: center; }
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.1s ease;
+            color: #8e8e93;
+        }
+        .action-btn:hover { background: #e5e5ea; }
+        .action-btn.delete-item { color: #ff3b30; font-size: 18px; font-weight: 400; }
+        .action-btn.delete-item:hover { background: #ffe5e5; }
+        .action-btn.edit-item svg { width: 14px; height: 14px; fill: #8e8e93; }
+        .add-root-input { display: flex; gap: 8px; margin-top: 12px; }
+        .add-root-input input { flex: 1; padding: 8px 12px; border: 0.5px solid #e5e5ea; border-radius: 8px; font-size: 14px; }
+        .add-root-input button { background: #61A2DA; border: none; padding: 8px 16px; border-radius: 8px; color: white; cursor: pointer; }
+
+        .settings-field {
+            margin-bottom: 20px;
+        }
+        .settings-field label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #3a3a44;
+        }
+        .settings-field input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 0.5px solid #e5e5ea;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: monospace;
+        }
+        .sync-status {
+            margin-top: 12px;
+            font-size: 12px;
+            color: #8e8e93;
+            text-align: center;
+        }
+
+        @media (max-width: 700px) {
+            body { padding: 12px; }
+            .header { flex-direction: column; align-items: stretch; }
+            .header-left { justify-content: space-between; }
+            .two-columns { flex-direction: column; }
+            .sidebar { border-right: none; border-bottom: 0.5px solid #e5e5ea; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="header">
+        <div class="header-left">
+            <h1>研学录</h1>
+            <div class="classic-tabs" id="classicTabsContainer">
+                <button class="classic-btn" data-classic="lunyu">论语</button>
+                <button class="classic-btn" data-classic="shijing">诗经</button>
+                <button class="classic-btn" data-classic="tangshi">唐诗</button>
+                <button class="classic-btn" data-classic="songci">宋词</button>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button id="editCatalogBtn" class="icon-btn">
+                <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M55.736,13.636l-4.368-4.362c-0.451-0.451-1.044-0.677-1.636-0.677c-0.592,0-1.184,0.225-1.635,0.676l-3.494,3.484l7.639,7.626l3.494-3.483C56.639,15.998,56.639,14.535,55.736,13.636z"/>
+                    <polygon points="21.922,35.396 29.562,43.023 50.607,22.017 42.967,14.39"/>
+                    <polygon points="20.273,37.028 18.642,46.28 27.913,44.654"/>
+                    <path d="M41.393,50.403H12.587V21.597h20.329l5.01-5H10.82c-1.779,0-3.234,1.455-3.234,3.234v32.339c0,1.779,1.455,3.234,3.234,3.234h32.339c1.779,0,3.234-1.455,3.234-3.234V29.049l-5,4.991V50.403z"/>
+                </svg>
+            </button>
+            <button id="settingsBtn" class="icon-btn">
+                <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                    <g data-name="1" id="_1">
+                        <path d="M293.9,450H233.53a15,15,0,0,1-14.92-13.42l-4.47-42.09a152.77,152.77,0,0,1-18.25-7.56L163,413.53a15,15,0,0,1-20-1.06l-42.69-42.69a15,15,0,0,1-1.06-20l26.61-32.93a152.15,152.15,0,0,1-7.57-18.25L76.13,294.1a15,15,0,0,1-13.42-14.91V218.81A15,15,0,0,1,76.13,203.9l42.09-4.47a152.15,152.15,0,0,1,7.57-18.25L99.18,148.25a15,15,0,0,1,1.06-20l42.69-42.69a15,15,0,0,1,20-1.06l32.93,26.6a152.77,152.77,0,0,1,18.25-7.56l4.47-42.09A15,15,0,0,1,233.53,48H293.9a15,15,0,0,1,14.92,13.42l4.46,42.09a152.91,152.91,0,0,1,18.26,7.56l32.92-26.6a15,15,0,0,1,20,1.06l42.69,42.69a15,15,0,0,1,1.06,20l-26.61,32.93a153.8,153.8,0,0,1,7.57,18.25l42.09,4.47a15,15,0,0,1,13.41,14.91v60.38A15,15,0,0,1,451.3,294.1l-42.09,4.47a153.8,153.8,0,0,1-7.57,18.25l26.61,32.93a15,15,0,0,1-1.06,20L384.5,412.47a15,15,0,0,1-20,1.06l-32.92-26.6a152.91,152.91,0,0,1-18.26,7.56l-4.46,42.09A15,15,0,0,1,293.9,450ZM247,420h33.39l4.09-38.56a15,15,0,0,1,11.06-12.91A123,123,0,0,0,325.7,356a15,15,0,0,1,17,1.31l30.16,24.37,23.61-23.61L372.06,328a15,15,0,0,1-1.31-17,122.63,122.63,0,0,0,12.49-30.14,15,15,0,0,1,12.92-11.06l38.55-4.1V232.31l-38.55-4.1a15,15,0,0,1-12.92-11.06A122.63,122.63,0,0,0,370.75,187a15,15,0,0,1,1.31-17l24.37-30.16-23.61-23.61-30.16,24.37a15,15,0,0,1-17,1.31,123,123,0,0,0-30.14-12.49,15,15,0,0,1-11.06-12.91L280.41,78H247l-4.09,38.56a15,15,0,0,1-11.07,12.91A122.79,122.79,0,0,0,201.73,142a15,15,0,0,1-17-1.31L154.6,116.28,131,139.89l24.38,30.16a15,15,0,0,1,1.3,17,123.41,123.41,0,0,0-12.49,30.14,15,15,0,0,1-12.91,11.06l-38.56,4.1v33.38l38.56,4.1a15,15,0,0,1,12.91,11.06A123.41,123.41,0,0,0,156.67,311a15,15,0,0,1-1.3,17L131,358.11l23.61,23.61,30.17-24.37a15,15,0,0,1,17-1.31,122.79,122.79,0,0,0,30.13,12.49,15,15,0,0,1,11.07,12.91ZM449.71,279.19h0Z"/>
+                        <path d="M263.71,340.36A91.36,91.36,0,1,1,355.08,249,91.46,91.46,0,0,1,263.71,340.36Zm0-152.72A61.36,61.36,0,1,0,325.08,249,61.43,61.43,0,0,0,263.71,187.64Z"/>
+                    </g>
+                </svg>
+            </button>
+        </div>
+    </div>
+    <div class="two-columns">
+        <div class="sidebar">
+            <div class="chapters-tree" id="chaptersTreeContainer"></div>
+            <div class="current-chapter-badge" id="currentChapterBadge"></div>
+        </div>
+        <div class="main-content">
+            <div class="records-header">
+                <div class="section-title">笔记</div>
+                <button id="openAddModalBtn" class="btn-add-record">新增</button>
+            </div>
+            <div id="recordsContainer" class="records-list"></div>
+            <div class="status-bar" id="statusMsg"></div>
+        </div>
+    </div>
+    <footer>多经典支持 · 目录自定义 · Gist云同步</footer>
+</div>
+
+<!-- 笔记模态窗 -->
+<div id="noteModal" class="modal-mask">
+    <div class="modal-container">
+        <div class="modal-header"><h3 id="modalTitle">笔记</h3><button class="close-modal" id="closeModalBtn">&times;</button></div>
+        <div class="modal-body">
+            <div class="four-fields">
+                <div class="field-group"><div class="field-label">原文</div><div id="editorOriginal" class="quill-editor"></div></div>
+                <div class="field-group"><div class="field-label">注释</div><div id="editorNotes" class="quill-editor"></div></div>
+                <div class="field-group"><div class="field-label">补充</div><div id="editorSupplement" class="quill-editor"></div></div>
+                <div class="field-group"><div class="field-label">译文</div><div id="editorTranslation" class="quill-editor"></div></div>
+            </div>
+            <div class="modal-actions"><button id="modalCancelBtn" class="btn-cancel">取消</button><button id="modalConfirmBtn" class="btn-confirm">保存</button></div>
+        </div>
+    </div>
+</div>
+
+<!-- 目录编辑模态窗 -->
+<div id="catalogModal" class="modal-mask edit-modal">
+    <div class="modal-container">
+        <div class="modal-header"><h3>编辑目录</h3><button class="close-modal" id="closeCatalogBtn">&times;</button></div>
+        <div class="modal-body">
+            <div id="catalogTreeList" class="edit-tree-list"></div>
+            <div class="add-root-input">
+                <input type="text" id="newRootName" placeholder="新分组名称">
+                <button id="addRootBtn">添加一级</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 设置模态窗 -->
+<div id="settingsModal" class="modal-mask settings-modal">
+    <div class="modal-container">
+        <div class="modal-header"><h3>设置 · Gist同步</h3><button class="close-modal" id="closeSettingsBtn">&times;</button></div>
+        <div class="modal-body">
+            <div class="settings-field"><label>GitHub Token</label><input type="password" id="githubToken" placeholder="输入 Personal Access Token"></div>
+            <div class="settings-field"><label>Gist ID</label><input type="text" id="gistIdInput" placeholder="Gist ID（可选）"></div>
+            <div class="modal-actions"><button id="saveToGistBtn" class="btn-confirm">保存到Gist</button><button id="loadFromGistBtn" class="btn-cancel">从Gist恢复</button></div>
+            <div class="sync-status" id="syncStatus"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 多经典数据结构
+    const defaultTrees = {
+        lunyu: [{ id: "l1", name: "学而篇", children: [] }, { id: "l2", name: "为政篇", children: [] }],
+        shijing: [{ id: "s1", name: "国风", children: [{ id: "s1-1", name: "周南", children: [{ id: "s1-1-1", name: "关雎" }] }] }],
+        tangshi: [{ id: "t1", name: "初唐", children: [{ id: "t1-1", name: "王勃", children: [{ id: "t1-1-1", name: "送杜少府之任蜀州" }] }] }, { id: "t2", name: "盛唐", children: [{ id: "t2-1", name: "李白", children: [{ id: "t2-1-1", name: "静夜思" }] }] }],
+        songci: [{ id: "c1", name: "婉约派", children: [{ id: "c1-1", name: "李清照", children: [{ id: "c1-1-1", name: "如梦令" }] }] }, { id: "c2", name: "豪放派", children: [{ id: "c2-1", name: "苏轼", children: [{ id: "c2-1-1", name: "念奴娇·赤壁怀古" }] }] }]
+    };
+    let trees = JSON.parse(JSON.stringify(defaultTrees));
+    let currentClassic = 'lunyu';
+    let currentChapter = "学而篇";
+    let notes = [];
+    let editingId = null;
+    let quillOriginal, quillNotes, quillSupplement, quillTranslation;
+
+    function getCurrentTree() { return trees[currentClassic] || []; }
+    function genId() { return Date.now() + '-' + Math.random().toString(36).substr(2, 6); }
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
+
+    function getAllLeafNodes(tree, path = []) {
+        let leaves = [];
+        for (let node of tree) {
+            if (node.children?.length) leaves.push(...getAllLeafNodes(node.children, [...path, node.name]));
+            else leaves.push({ id: node.id, name: node.name, fullPath: [...path, node.name].join(' / ') });
+        }
+        return leaves;
+    }
+
+    function saveTrees() { localStorage.setItem('classic_trees', JSON.stringify(trees)); }
+    function loadTrees() { const t = localStorage.getItem('classic_trees'); if (t) trees = JSON.parse(t); else trees = JSON.parse(JSON.stringify(defaultTrees)); }
+    function saveNotes() { localStorage.setItem('study_notes', JSON.stringify(notes)); }
+    function loadNotes() { const s = localStorage.getItem('study_notes'); if (s) notes = JSON.parse(s); else notes = []; }
+
+    // 渲染树形菜单：一级、二级、三级分别用不同缩进
+    function renderTree() {
+        const container = document.getElementById('chaptersTreeContainer');
+        if (!container) return;
+        container.innerHTML = '';
+        getCurrentTree().forEach(node => renderNode(container, node, 1));
+        updateBadge();
+    }
+
+  function renderNode(parentEl, node, level) {
+    const div = document.createElement('div');
+    div.className = 'tree-node';
+    const hasChildren = node.children && node.children.length > 0;
+    const header = document.createElement('div');
+    
+    if (level === 1) header.className = 'level-1';
+    else if (level === 2) header.className = 'level-2';
+    else header.className = 'level-3';
+    
+    const chevronHtml = hasChildren ? `<span class="chevron">›</span>` : `<span style="width:20px;display:inline-block"></span>`;
+    header.innerHTML = `
+        <div style="display:flex; align-items:center; flex:1">
+            ${chevronHtml}
+            <span class="node-title">${escapeHtml(node.name)}</span>
+        </div>
+    `;
+    
+    if (!hasChildren) {
+        header.classList.toggle('active-chapter', currentChapter === node.name);
+        header.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectChapter(node.name);
+        });
+        div.appendChild(header);
+    } else {
+        const childrenDiv = document.createElement('div');
+        childrenDiv.className = 'children-container';
+        node.children.forEach(child => renderNode(childrenDiv, child, level + 1));
+        childrenDiv.classList.add('open');
+        
+        // ✅ 关键修复：先添加父节点 header，再添加子容器
+        div.appendChild(header);
+        div.appendChild(childrenDiv);
+        
+        const chevSpan = header.querySelector('.chevron');
+        header.addEventListener('click', (e) => {
+            e.stopPropagation();
+            childrenDiv.classList.toggle('open');
+            chevSpan.classList.toggle('open');
+        });
+    }
+    parentEl.appendChild(div);
+}
+    function selectChapter(name) {
+        currentChapter = name;
+        saveCurrent();
+        renderTree();
+        renderRecords();
+        showMsg(`当前: ${name}`);
+    }
+
+    function updateBadge() { document.getElementById('currentChapterBadge').innerText = currentChapter || '未选择'; }
+    function saveCurrent() { localStorage.setItem('currentClassic', currentClassic); localStorage.setItem('currentChapter', currentChapter); }
+    function loadCurrent() { const c = localStorage.getItem('currentClassic'); if (c && trees[c]) currentClassic = c; const ch = localStorage.getItem('currentChapter'); if (ch) currentChapter = ch; }
+
+    function renderRecords() {
+        const container = document.getElementById('recordsContainer');
+        const filtered = notes.filter(n => n.classic === currentClassic && n.chapter === currentChapter);
+        if (!filtered.length) { container.innerHTML = '<div class="empty-msg">暂无笔记</div>'; return; }
+        container.innerHTML = '';
+        filtered.forEach(r => {
+            const card = document.createElement('div'); card.className = 'record-card';
+            card.innerHTML = `<div class="record-header"><span class="record-title">${escapeHtml(r.chapter)}</span><span class="record-meta">${new Date(r.updatedAt).toLocaleDateString()}</span></div>
+                <div class="record-full-content"><div class="full-text original-text">${r.original || '—'}</div><div class="full-text gray-text notes-section">${r.notes || '—'}</div><div class="full-text">${r.supplement || '—'}</div><div class="full-text">${r.translation || '—'}</div></div>
+                <div class="record-actions"><button class="edit-btn" data-id="${r.id}">编辑</button><button class="delete-btn" data-id="${r.id}">删除</button></div>`;
+            container.appendChild(card);
+        });
+        document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', e => openEditModal(parseInt(btn.dataset.id))));
+        document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', e => { if(confirm('删除笔记？')) { notes = notes.filter(n => n.id !== parseInt(btn.dataset.id)); saveNotes(); renderRecords(); showMsg('已删除'); } }));
+    }
+
+    function openAddModal() { editingId = null; resetQuill(); document.getElementById('modalTitle').innerText = '笔记'; document.getElementById('noteModal').classList.add('active'); }
+    function openEditModal(id) { const r = notes.find(n => n.id === id); if(!r) return; editingId = id; setQuill(r); document.getElementById('modalTitle').innerText = '编辑笔记'; document.getElementById('noteModal').classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); editingId = null; }
+    function resetQuill() { quillOriginal.root.innerHTML = ''; quillNotes.root.innerHTML = ''; quillSupplement.root.innerHTML = ''; quillTranslation.root.innerHTML = ''; }
+    function setQuill(r) { quillOriginal.root.innerHTML = r.original || ''; quillNotes.root.innerHTML = r.notes || ''; quillSupplement.root.innerHTML = r.supplement || ''; quillTranslation.root.innerHTML = r.translation || ''; }
+    function getQuill() { return { original: quillOriginal.root.innerHTML, notes: quillNotes.root.innerHTML, supplement: quillSupplement.root.innerHTML, translation: quillTranslation.root.innerHTML }; }
+    function saveNote() {
+        const { original, notes: nt, supplement, translation } = getQuill();
+        const now = new Date().toISOString();
+        if (editingId) {
+            const idx = notes.findIndex(n => n.id === editingId);
+            if (idx !== -1) notes[idx] = { ...notes[idx], original, notes: nt, supplement, translation, updatedAt: now };
+        } else notes.push({ id: Date.now(), classic: currentClassic, chapter: currentChapter, original, notes: nt, supplement, translation, createdAt: now, updatedAt: now });
+        saveNotes(); renderRecords(); closeModal('noteModal'); showMsg('已保存');
+    }
+
+    function renderCatalogTree() { const container = document.getElementById('catalogTreeList'); if(!container) return; container.innerHTML = ''; getCurrentTree().forEach(node => renderCatalogNode(container, node, 1)); }
+    function renderCatalogNode(parent, node, level) {
+        const div = document.createElement('div'); div.className = 'edit-tree-item';
+        const hasChildren = node.children?.length > 0;
+        const editIcon = `<svg viewBox="0 0 512 512" width="14" height="14"><path d="M204.54,388.18a5.93,5.93,0,0,1-4.24-1.76L125.58,311.7a6,6,0,0,1,0-8.48l184-184a6,6,0,0,1,8.49,0l74.72,74.72a6,6,0,0,1,0,8.49l-184,184A6,6,0,0,1,204.54,388.18ZM138.3,307.46l66.24,66.24L380.05,198.18,313.82,132Z"/><path d="M388.54,204.18a6,6,0,0,1-4.25-1.75l-74.72-74.72a6,6,0,0,1,0-8.49l14.7-14.7a46.14,46.14,0,0,1,65.18,0l18,18a46.09,46.09,0,0,1,0,65.18l-14.7,14.7A6,6,0,0,1,388.54,204.18ZM322.3,123.46l66.24,66.24L399,179.24A34.08,34.08,0,0,0,399,131h0l-18-18a34.13,34.13,0,0,0-48.21,0Z"/><path d="M111.39,421.2a20.45,20.45,0,0,1-14.73-5.86c-6-6-7.48-15.08-4-24.38l31.58-85.58a6,6,0,0,1,9.87-2.16l74.72,74.72a6,6,0,0,1-2.16,9.87L121,419.39h0A27.94,27.94,0,0,1,111.39,421.2Zm5.49-13.06,2.08,5.62-2.08-5.62,76.79-28.34L132.2,318.33l-28.34,76.79c-1.76,4.78-1.28,9.17,1.28,11.74S112.1,409.9,116.88,408.14Z"/></svg>`;
+        div.innerHTML = `<div style="flex:1; display:flex; align-items:center;">${hasChildren ? '<span class="catalog-chevron">▶</span>' : '<span style="width:20px"></span>'}<span style="margin-left:4px;">${'　'.repeat(level-1)}${escapeHtml(node.name)}</span><span style="margin-left:8px;font-size:11px;color:#8e8e93;">(${node.children?.length||0})</span></div>
+            <div class="edit-tree-actions"><button class="action-btn add-child">+</button><button class="action-btn edit-item">${editIcon}</button><button class="action-btn delete-item">×</button></div>`;
+        const childrenDiv = document.createElement('div'); childrenDiv.className = 'catalog-children'; childrenDiv.style.display = 'none';
+        if (hasChildren) node.children.forEach(c => renderCatalogNode(childrenDiv, c, level + 1));
+        const chev = div.querySelector('.catalog-chevron');
+        if (chev) chev.addEventListener('click', (e) => { e.stopPropagation(); const vis = childrenDiv.style.display !== 'none'; childrenDiv.style.display = vis ? 'none' : 'block'; chev.innerText = vis ? '▶' : '▼'; });
+        div.querySelector('.add-child')?.addEventListener('click', (e) => { e.stopPropagation(); addChild(node.id); });
+        div.querySelector('.edit-item')?.addEventListener('click', (e) => { e.stopPropagation(); editNode(node.id, node.name); });
+        div.querySelector('.delete-item')?.addEventListener('click', (e) => { e.stopPropagation(); deleteNodeById(node.id); });
+        parent.appendChild(div); parent.appendChild(childrenDiv);
+    }
+    function addChild(pid) { const name = prompt('输入名称:'); if(!name) return; const find = (arr) => { for(let n of arr) { if(n.id === pid) { if(!n.children) n.children = []; n.children.push({ id: genId(), name, children: [] }); return true; } if(n.children && find(n.children)) return true; } return false; }; find(getCurrentTree()); saveTrees(); renderCatalogTree(); renderTree(); showMsg(`已添加: ${name}`); }
+    function editNode(id, old) { const newName = prompt('修改名称:', old); if(!newName || newName===old) return; const find = (arr) => { for(let n of arr) { if(n.id === id) { n.name = newName; return true; } if(n.children && find(n.children)) return true; } return false; }; find(getCurrentTree()); if(currentChapter === old) currentChapter = newName; saveTrees(); renderCatalogTree(); renderTree(); renderRecords(); showMsg(`已重命名`); }
+    function deleteNodeById(id) { if(!confirm('删除此项及其子项？')) return; const remove = (arr) => { const idx = arr.findIndex(n => n.id === id); if(idx !== -1) { arr.splice(idx,1); return true; } for(let n of arr) if(n.children && remove(n.children)) return true; return false; }; remove(getCurrentTree()); const leaves = getAllLeafNodes(getCurrentTree()); if(leaves.length && !leaves.find(l=>l.name===currentChapter)) currentChapter = leaves[0]?.name||''; saveTrees(); renderCatalogTree(); renderTree(); renderRecords(); showMsg('已删除'); }
+    function addRoot() { const name = document.getElementById('newRootName').value.trim(); if(!name) return; getCurrentTree().push({ id: genId(), name, children: [] }); saveTrees(); renderCatalogTree(); renderTree(); document.getElementById('newRootName').value = ''; showMsg(`已添加: ${name}`); }
+
+    function switchClassic(type) { if(type === currentClassic) return; currentClassic = type; const leaves = getAllLeafNodes(getCurrentTree()); currentChapter = leaves[0]?.name || ''; saveCurrent(); updateClassicUI(); renderTree(); renderRecords(); showMsg(`切换到${type}`); }
+    function updateClassicUI() { document.querySelectorAll('.classic-btn').forEach(btn => { if(btn.dataset.classic === currentClassic) btn.classList.add('active'); else btn.classList.remove('active'); }); }
+    function initQuill() { quillOriginal = new Quill('#editorOriginal', { theme: 'snow' }); quillNotes = new Quill('#editorNotes', { theme: 'snow' }); quillSupplement = new Quill('#editorSupplement', { theme: 'snow' }); quillTranslation = new Quill('#editorTranslation', { theme: 'snow' }); }
+    function showMsg(msg) { const d = document.getElementById('statusMsg'); d.innerText = msg; setTimeout(() => { if(d) d.innerText = ''; }, 2000); }
+
+    function bindEvents() {
+        document.getElementById('openAddModalBtn').addEventListener('click', openAddModal);
+        document.getElementById('closeModalBtn').addEventListener('click', () => closeModal('noteModal'));
+        document.getElementById('modalCancelBtn').addEventListener('click', () => closeModal('noteModal'));
+        document.getElementById('modalConfirmBtn').addEventListener('click', saveNote);
+        document.getElementById('editCatalogBtn').addEventListener('click', () => { renderCatalogTree(); document.getElementById('catalogModal').classList.add('active'); });
+        document.getElementById('closeCatalogBtn').addEventListener('click', () => closeModal('catalogModal'));
+        document.getElementById('addRootBtn').addEventListener('click', addRoot);
+        document.getElementById('settingsBtn').addEventListener('click', () => document.getElementById('settingsModal').classList.add('active'));
+        document.getElementById('closeSettingsBtn').addEventListener('click', () => closeModal('settingsModal'));
+        document.querySelectorAll('.classic-btn').forEach(btn => btn.addEventListener('click', () => switchClassic(btn.dataset.classic)));
+        document.querySelectorAll('.modal-mask').forEach(mask => mask.addEventListener('click', (e) => { if(e.target === mask) mask.classList.remove('active'); }));
+        document.getElementById('saveToGistBtn')?.addEventListener('click', () => alert('Gist同步功能需配置Token后实现'));
+        document.getElementById('loadFromGistBtn')?.addEventListener('click', () => alert('从Gist恢复功能需配置Token后实现'));
+    }
+
+    function init() { loadTrees(); loadNotes(); loadCurrent(); initQuill(); bindEvents(); updateClassicUI(); renderTree(); renderRecords(); showMsg('就绪'); }
+    init();
+</script>
+</body>
+</html>
