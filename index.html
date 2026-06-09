@@ -2199,6 +2199,8 @@ window.toggleOutlineItem = function(bullet) {
     }
 };
 
+
+
   
 function renderRecords() {
     const container = document.getElementById('recordsContainer');
@@ -2243,59 +2245,64 @@ function renderRecords() {
 
 contentHtml += '<div class="record-full-content">';
     
+    
+    
     if (isClassic) {
-        // ========== 经典文献模式：原文、注释、补充、译文 ==========
-        if (currentNote.original && currentNote.original !== '<p><br></p>') {
-            contentHtml += `<div class="collapsible-box" style="margin-bottom: 12px;">
-                <div class="collapsible-header" onclick="toggleCollapsible('originalContent_${currentNote.id}')">
-                    <span class="collapse-arrow">▼</span> 原文
-                </div>
-                <div id="originalContent_${currentNote.id}" class="collapsible-content">
-                    <div class="full-text" style="font-size: 15px; line-height: 1.8;">${currentNote.original}</div>
-                </div>
-            </div>`;
-        }
-        
-        if (currentNote.notes && currentNote.notes !== '<p><br></p>') {
-            contentHtml += `<div class="collapsible-box" style="margin-bottom: 12px;">
-                <div class="collapsible-header" onclick="toggleCollapsible('notesContent_${currentNote.id}')">
-                    <span class="collapse-arrow">▼</span> 注释
-                </div>
-                <div id="notesContent_${currentNote.id}" class="collapsible-content">
-                    <div class="full-text" style="font-size: 14px; line-height: 1.7; color: #3a3a44;">${currentNote.notes}</div>
-                </div>
-            </div>`;
-        }
-        
-        if (currentNote.supplement && currentNote.supplement !== '<p><br></p>') {
-            contentHtml += `<div class="collapsible-box" style="margin-bottom: 12px;">
-                <div class="collapsible-header" onclick="toggleCollapsible('supplementContent_${currentNote.id}')">
-                    <span class="collapse-arrow">▼</span> 补充（背景、评价等）
-                </div>
-                <div id="supplementContent_${currentNote.id}" class="collapsible-content">
-                    <div class="full-text" style="font-size: 14px; line-height: 1.7;">${currentNote.supplement}</div>
-                </div>
-            </div>`;
-        }
-        
-        if (currentNote.translation && currentNote.translation !== '<p><br></p>') {
-            contentHtml += `<div class="collapsible-box" style="margin-bottom: 12px;">
-                <div class="collapsible-header" onclick="toggleCollapsible('translationContent_${currentNote.id}')">
-                    <span class="collapse-arrow">▼</span> 译文
-                </div>
-                <div id="translationContent_${currentNote.id}" class="collapsible-content">
-                    <div class="full-text" style="font-size: 14px; line-height: 1.7; color: #2c6e2c;">${currentNote.translation}</div>
-                </div>
-            </div>`;
-        }
-        
-        if ((!currentNote.original || currentNote.original === '<p><br></p>') &&
-            (!currentNote.notes || currentNote.notes === '<p><br></p>') &&
-            (!currentNote.supplement || currentNote.supplement === '<p><br></p>') &&
-            (!currentNote.translation || currentNote.translation === '<p><br></p>')) {
-            contentHtml += `<div style="color: #aeaeb2; padding: 40px 20px; text-align: center;">📝 暂无内容，点击编辑添加原文、注释、补充或译文</div>`;
-        }
-    } else {
+    // ========== 经典文献模式：原文、注释、补充、译文（保留折叠 + 双击编辑） ==========
+    
+    // 原文
+    const originalContent = (currentNote.original && currentNote.original !== '<p><br></p>') ? currentNote.original : '<div style="color: #aeaeb2; padding: 20px; text-align: center;">📖 暂无原文，双击此处添加</div>';
+    contentHtml += `<div class="collapsible-box" style="margin-bottom: 12px;">
+        <div class="collapsible-header" onclick="toggleCollapsible('originalContent_${currentNote.id}')">
+            <span class="collapse-arrow">▼</span> 原文
+        </div>
+        <div id="originalContent_${currentNote.id}" class="collapsible-content">
+            <div class="full-text editable-inline" data-field="original" data-id="${currentNote.id}" style="font-size: 15px; line-height: 1.8; min-height: 60px;">${originalContent}</div>
+        </div>
+    </div>`;
+    
+    // 注释
+    const notesContent = (currentNote.notes && currentNote.notes !== '<p><br></p>') ? currentNote.notes : '<div style="color: #aeaeb2; padding: 20px; text-align: center;">📝 暂无注释，双击此处添加</div>';
+    contentHtml += `<div class="collapsible-box" style="margin-bottom: 12px;">
+        <div class="collapsible-header" onclick="toggleCollapsible('notesContent_${currentNote.id}')">
+            <span class="collapse-arrow">▼</span> 注释
+        </div>
+        <div id="notesContent_${currentNote.id}" class="collapsible-content">
+            <div class="full-text editable-inline" data-field="notes" data-id="${currentNote.id}" style="font-size: 14px; line-height: 1.7; color: #3a3a44; min-height: 60px;">${notesContent}</div>
+        </div>
+    </div>`;
+    
+    // 补充
+    const supplementContent = (currentNote.supplement && currentNote.supplement !== '<p><br></p>') ? currentNote.supplement : '<div style="color: #aeaeb2; padding: 20px; text-align: center;">📌 暂无补充，双击此处添加</div>';
+    contentHtml += `<div class="collapsible-box" style="margin-bottom: 12px;">
+        <div class="collapsible-header" onclick="toggleCollapsible('supplementContent_${currentNote.id}')">
+            <span class="collapse-arrow">▼</span> 补充（背景、评价等）
+        </div>
+        <div id="supplementContent_${currentNote.id}" class="collapsible-content">
+            <div class="full-text editable-inline" data-field="supplement" data-id="${currentNote.id}" style="font-size: 14px; line-height: 1.7; min-height: 60px;">${supplementContent}</div>
+        </div>
+    </div>`;
+    
+    // 译文
+    const translationContent = (currentNote.translation && currentNote.translation !== '<p><br></p>') ? currentNote.translation : '<div style="color: #aeaeb2; padding: 20px; text-align: center;">🌐 暂无译文，双击此处添加</div>';
+    contentHtml += `<div class="collapsible-box" style="margin-bottom: 12px;">
+        <div class="collapsible-header" onclick="toggleCollapsible('translationContent_${currentNote.id}')">
+            <span class="collapse-arrow">▼</span> 译文
+        </div>
+        <div id="translationContent_${currentNote.id}" class="collapsible-content">
+            <div class="full-text editable-inline" data-field="translation" data-id="${currentNote.id}" style="font-size: 14px; line-height: 1.7; color: #2c6e2c; min-height: 60px;">${translationContent}</div>
+        </div>
+    </div>`;
+    
+    // 如果所有内容都为空，显示提示
+    if ((!currentNote.original || currentNote.original === '<p><br></p>') &&
+        (!currentNote.notes || currentNote.notes === '<p><br></p>') &&
+        (!currentNote.supplement || currentNote.supplement === '<p><br></p>') &&
+        (!currentNote.translation || currentNote.translation === '<p><br></p>')) {
+        contentHtml += `<div style="color: #aeaeb2; padding: 40px 20px; text-align: center;">📝 暂无内容，双击上方空白处添加</div>`;
+    }
+}
+    else {
         
         
         
@@ -2356,7 +2363,10 @@ contentHtml += '<div class="record-full-content">';
     contentHtml += '</div></div>';
     container.innerHTML = contentHtml;
 
-
+// 绑定双击编辑事件
+if (typeof bindInlineEditors === 'function') {
+    bindInlineEditors();
+}
 
     
     // ========== 大纲折叠功能（仅历史人物模式需要） ==========
