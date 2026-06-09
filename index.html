@@ -2200,7 +2200,156 @@ window.toggleOutlineItem = function(bullet) {
 };
 
 
+// ========== 原地编辑核心函数 ==========
+let activeEditorElement = null;
 
+function bindInlineEditors() {
+    console.log('bindInlineEditors 被调用，找到元素:', document.querySelectorAll('.editable-inline').length);
+    
+    document.querySelectorAll('.editable-inline').forEach(el => {
+        // 移除旧的监听器
+        if (el._dblclickHandler) {
+            el.removeEventListener('dblclick', el._dblclickHandler);
+        }
+        
+        const handler = (e) => {
+            e.stopPropagation();
+            console.log('双击触发:', el.dataset.field);
+            
+            if (activeEditorElement && activeEditorElement !== el) {
+                saveAndCloseEditor(activeEditorElement);
+            }
+            
+            const field = el.dataset.field;
+            const noteId = parseInt(el.dataset.id);
+            const originalHtml = el.innerHTML;
+            
+            el.setAttribute('contenteditable', 'true');
+            el.style.cssText = `
+                outline: 2px solid #61A2DA;
+                border-radius: 8px;
+                background-color: #ffffff;
+                padding: 4px 8px;
+                cursor: text;
+                text-align: left;
+                color: #1c1c1e;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+                line-height: 1.4;
+            `;
+            
+            el._originalHtml = originalHtml;
+            el._field = field;
+            el._noteId = noteId;
+            activeEditorElement = el;
+            
+            el.focus();
+            
+            const range = document.createRange();
+            const sel = window.getSelection();
+            range.selectNodeContents(el);
+            range.collapse(false);
+            sel.removeAllRanges();
+            sel.addRange(range);
+            
+            const saveOnBlur = () => {
+                if (activeEditorElement === el) {
+                    saveAndCloseEditor(el);
+                }
+            };
+            
+            el.addEventListener('blur', saveOnBlur, { once: true });
+            
+            const handleKeyDown = (e) => {
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    cancelEdit(el);
+                    el.removeEventListener('keydown', handleKeyDown);
+                }
+                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    el.blur();
+                }
+                if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+                    e.preventDefault();
+                    const selection = window.getSelection();
+                    if (!selection.rangeCount) return;
+                    const range = selection.getRangeAt(0);
+                    const br = document.createElement('br');
+                    range.deleteContents();
+                    range.insertNode(br);
+                    range.setStartAfter(br);
+                    range.setEndAfter(br);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+            };
+            el.addEventListener('keydown', handleKeyDown);
+            
+            el._blurHandler = saveOnBlur;
+            el._keydownHandler = handleKeyDown;
+        };
+        
+        el._dblclickHandler = handler;
+        el.addEventListener('dblclick', handler);
+        el.style.cursor = 'pointer';
+        el.title = '双击编辑（点击外部自动保存）';
+    });
+}
+
+function saveAndCloseEditor(el) {
+    if (!el || el.getAttribute('contenteditable') !== 'true') return;
+    
+    const newHtml = el.innerHTML;
+    const originalHtml = el._originalHtml;
+    const field = el._field;
+    const noteId = el._noteId;
+    
+    el.removeAttribute('contenteditable');
+    el.style.cssText = '';
+    el.style.cursor = 'pointer';
+    
+    if (newHtml !== originalHtml) {
+        const noteIndex = notes.findIndex(n => n.id === noteId);
+        if (noteIndex !== -1) {
+            notes[noteIndex][field] = newHtml;
+            notes[noteIndex].updatedAt = new Date().toISOString();
+            saveNotes();
+            console.log(`保存 ${field}:`, newHtml.substring(0, 50));
+            renderRecords();
+            showMsg('✅ 已自动保存');
+        }
+    }
+    
+    if (el._blurHandler) {
+        el.removeEventListener('blur', el._blurHandler);
+    }
+    if (el._keydownHandler) {
+        el.removeEventListener('keydown', el._keydownHandler);
+    }
+    
+    activeEditorElement = null;
+}
+
+function cancelEdit(el) {
+    if (!el || el.getAttribute('contenteditable') !== 'true') return;
+    
+    el.innerHTML = el._originalHtml;
+    
+    el.removeAttribute('contenteditable');
+    el.style.cssText = '';
+    el.style.cursor = 'pointer';
+    
+    if (el._blurHandler) {
+        el.removeEventListener('blur', el._blurHandler);
+    }
+    if (el._keydownHandler) {
+        el.removeEventListener('keydown', el._keydownHandler);
+    }
+    
+    activeEditorElement = null;
+    showMsg('已取消编辑');
+}
   
 function renderRecords() {
     const container = document.getElementById('recordsContainer');
