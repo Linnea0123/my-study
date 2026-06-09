@@ -1951,6 +1951,8 @@ function bindLifespanEvents() {
  
     // 默认目录数据（保留你原来的 defaultTrees，这里只是示意结构）
     let trees = JSON.parse(JSON.stringify(defaultTrees));
+    // 为每个网页生成唯一标识（使用页面标题，确保不同网页独立存储）
+const PAGE_ID = 'learning_lib_main';  // 不同网页改成不同值，如 'china_history', 'lunyu_study'
     let currentClassic = 'china';
     let currentChapter = "秦始皇";
     let notes = [];
@@ -4263,9 +4265,8 @@ if (addTagBtn) {
         headerSaveToGistBtn.onclick = async () => {
             console.log('上传按钮被点击');
             
-            const token = localStorage.getItem('github_token');
-            const gistId = localStorage.getItem('gist_id');
-            
+           const token = localStorage.getItem(PAGE_ID + '_github_token');
+const gistId = localStorage.getItem(PAGE_ID + '_gist_id');
             if (!token || !gistId) {
                 alert('请先在设置中保存 Token 和 Gist ID');
                 showSyncStatus('请先在设置中保存 Token 和 Gist ID', 'error');
@@ -4514,26 +4515,27 @@ if (editCatalogBtn) {
     }
     
 
-// 保存设置到 localStorage
 function saveGistSettings() {
     const token = document.getElementById('githubToken').value;
     const gistId = document.getElementById('gistIdInput').value;
-    if (token) localStorage.setItem('github_token', token);
-    if (gistId) localStorage.setItem('gist_id', gistId);
-    showSyncStatus('✅ Token 和 Gist ID 已保存到本地', 'success');
+    if (token) localStorage.setItem(PAGE_ID + '_github_token', token);
+    if (gistId) localStorage.setItem(PAGE_ID + '_gist_id', gistId);
+    showSyncStatus('✅ 当前网页的 Token 和 Gist ID 已保存', 'success');
 }
 
-// 加载保存的设置
 function loadGistSettings() {
-    const savedToken = localStorage.getItem('github_token');
-    const savedGistId = localStorage.getItem('gist_id');
+    const savedToken = localStorage.getItem(PAGE_ID + '_github_token');
+    const savedGistId = localStorage.getItem(PAGE_ID + '_gist_id');
     if (savedToken) document.getElementById('githubToken').value = savedToken;
     if (savedGistId) document.getElementById('gistIdInput').value = savedGistId;
     
-    // 返回是否加载成功
+    // 在设置面板显示当前使用的 Gist ID
+    const syncDiv = document.getElementById('syncStatus');
+    if (savedGistId && syncDiv) {
+        syncDiv.innerHTML = `📌 当前网页使用 Gist: ${savedGistId.substring(0, 12)}...`;
+    }
     return savedToken && savedGistId;
 }
-
 
     function showSyncStatus(msg, type) { 
         const div = document.getElementById('syncStatus'); 
