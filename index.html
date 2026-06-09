@@ -507,8 +507,41 @@
     margin: 8px 0 !important;
 }
 
+/* 强制 Quill 编辑器内容左对齐 */
+.ql-editor {
+    text-align: left !important;
+}
+
+.ql-editor p,
+.ql-editor div,
+.ql-editor h1,
+.ql-editor h2,
+.ql-editor h3,
+.ql-editor h4,
+.ql-editor h5,
+.ql-editor h6,
+.ql-editor ol,
+.ql-editor ul {
+    text-align: left !important;
+}
+
+/* 针对经典文献模态窗中的编辑器 */
+#editorOriginal .ql-editor,
+#editorNotes .ql-editor,
+#editorSupplement .ql-editor,
+#editorTranslation .ql-editor,
+#editorContent .ql-editor {
+    text-align: left !important;
+}
+
+/* 确保编辑器容器也是左对齐 */
+.quill-editor {
+    text-align: left;
+}
+
+
 .full-text li {
-    margin-left: 24px !important;   /* 增大这个，圆点和文字一起右移 */
+    margin-left: 0px !important;   /* 增大这个，圆点和文字一起右移 */
     text-indent: -1px !important;   /* 负值让圆点向左移动，文字不动 */
 }
 /* 第二级 - 圆点稍微左移少一点（因为已经靠右了） */
@@ -750,6 +783,8 @@ body {
     transform: scale(1.2);
 }
 
+
+
 /* 相关事件标签样式 */
 .event-tag {
     display: inline-flex;
@@ -847,12 +882,15 @@ body {
     background: transparent;
     border-radius: 0;
     font-family: "Segoe UI Symbol", "Arial Unicode MS", monospace;
+    font-size: 12px;
+    line-height: 1;           /* ← 添加这行，固定行高 */
+    vertical-align: middle;   /* ← 添加这行，垂直居中 */
 }
 
 /* 展开状态显示 ▼ */
 .fold-toggle[data-expanded="true"]::before {
     content: "▼";
-    font-size: 9px;
+    font-size: 10px;
     color: #1c1c1e;
 }
 
@@ -1110,8 +1148,25 @@ body {
     color: #1c1c1e;
     font-weight: 500;
 }
+/* 强制编辑器内容左对齐 */
+.ql-editor {
+    text-align: left !important;
+}
 
+.ql-editor p,
+.ql-editor div,
+.ql-editor * {
+    text-align: left !important;
+}
 
+/* 确保编辑器容器也是左对齐 */
+.ql-container {
+    text-align: left;
+}
+/* 统一所有编辑区域的内边距 */
+.editable-inline {
+    padding: -4px 8px !important;
+}
     </style>
 </head>
 <body>
@@ -2396,62 +2451,68 @@ contentHtml += '<div class="record-full-content">';
     
     
     
-    if (isClassic) {
-    // ========== 经典文献模式：原文、注释、补充、译文（保留折叠 + 双击编辑） ==========
+  if (isClassic) {
+    // ========== 经典文献模式：原文、注释、补充、译文（空白区块自动折叠） ==========
     
-    // 原文
-    const originalContent = (currentNote.original && currentNote.original !== '<p><br></p>') ? currentNote.original : '<div style="color: #aeaeb2; padding: 20px; text-align: center;">📖 暂无原文，双击此处添加</div>';
+    // 辅助函数：判断内容是否为空
+    function isEmptyContent(str) {
+        return !str || str === '<p><br></p>' || str.trim() === '';
+    }
+    
+    // 获取各区块内容
+    const hasOriginal = !isEmptyContent(currentNote.original);
+    const hasNotes = !isEmptyContent(currentNote.notes);
+    const hasSupplement = !isEmptyContent(currentNote.supplement);
+    const hasTranslation = !isEmptyContent(currentNote.translation);
+    
+    // 1. 原文（始终展开）
+    const originalContent = hasOriginal ? currentNote.original : '<div style="color: #aeaeb2; padding: 20px; text-align: center;">📖 暂无原文，双击此处添加</div>';
     contentHtml += `<div class="collapsible-box" style="margin-bottom: 12px;">
         <div class="collapsible-header" onclick="toggleCollapsible('originalContent_${currentNote.id}')">
             <span class="collapse-arrow">▼</span> 原文
         </div>
-        <div id="originalContent_${currentNote.id}" class="collapsible-content">
+        <div id="originalContent_${currentNote.id}" class="collapsible-content" style="display: block;">
             <div class="full-text editable-inline" data-field="original" data-id="${currentNote.id}" style="font-size: 15px; line-height: 1.8; min-height: 60px;">${originalContent}</div>
         </div>
     </div>`;
     
-    // 注释
-    const notesContent = (currentNote.notes && currentNote.notes !== '<p><br></p>') ? currentNote.notes : '<div style="color: #aeaeb2; padding: 20px; text-align: center;">📝 暂无注释，双击此处添加</div>';
+    // 2. 注释（空白时折叠）
+    const notesContent = hasNotes ? currentNote.notes : '';
     contentHtml += `<div class="collapsible-box" style="margin-bottom: 12px;">
         <div class="collapsible-header" onclick="toggleCollapsible('notesContent_${currentNote.id}')">
-            <span class="collapse-arrow">▼</span> 注释
+            <span class="collapse-arrow">${hasNotes ? '▼' : '▶'}</span> 注释
         </div>
-        <div id="notesContent_${currentNote.id}" class="collapsible-content">
+        <div id="notesContent_${currentNote.id}" class="collapsible-content" style="display: ${hasNotes ? 'block' : 'none'};">
             <div class="full-text editable-inline" data-field="notes" data-id="${currentNote.id}" style="font-size: 14px; line-height: 1.7; color: #3a3a44; min-height: 60px;">${notesContent}</div>
         </div>
     </div>`;
     
-    // 补充
-    const supplementContent = (currentNote.supplement && currentNote.supplement !== '<p><br></p>') ? currentNote.supplement : '<div style="color: #aeaeb2; padding: 20px; text-align: center;">📌 暂无补充，双击此处添加</div>';
-    contentHtml += `<div class="collapsible-box" style="margin-bottom: 12px;">
+    // 3. 补充（空白时折叠）
+const supplementContent = hasSupplement ? currentNote.supplement : '';   contentHtml += `<div class="collapsible-box" style="margin-bottom: 12px;">
         <div class="collapsible-header" onclick="toggleCollapsible('supplementContent_${currentNote.id}')">
-            <span class="collapse-arrow">▼</span> 补充（背景、评价等）
+            <span class="collapse-arrow">${hasSupplement ? '▼' : '▶'}</span> 补充（背景、评价等）
         </div>
-        <div id="supplementContent_${currentNote.id}" class="collapsible-content">
+        <div id="supplementContent_${currentNote.id}" class="collapsible-content" style="display: ${hasSupplement ? 'block' : 'none'};">
             <div class="full-text editable-inline" data-field="supplement" data-id="${currentNote.id}" style="font-size: 14px; line-height: 1.7; min-height: 60px;">${supplementContent}</div>
         </div>
     </div>`;
     
-    // 译文
-    const translationContent = (currentNote.translation && currentNote.translation !== '<p><br></p>') ? currentNote.translation : '<div style="color: #aeaeb2; padding: 20px; text-align: center;">🌐 暂无译文，双击此处添加</div>';
-    contentHtml += `<div class="collapsible-box" style="margin-bottom: 12px;">
+    // 4. 译文（空白时折叠，颜色改为黑色）
+const translationContent = hasTranslation ? currentNote.translation : '';
+   contentHtml += `<div class="collapsible-box" style="margin-bottom: 12px;">
         <div class="collapsible-header" onclick="toggleCollapsible('translationContent_${currentNote.id}')">
-            <span class="collapse-arrow">▼</span> 译文
+            <span class="collapse-arrow">${hasTranslation ? '▼' : '▶'}</span> 译文
         </div>
-        <div id="translationContent_${currentNote.id}" class="collapsible-content">
-            <div class="full-text editable-inline" data-field="translation" data-id="${currentNote.id}" style="font-size: 14px; line-height: 1.7; color: #2c6e2c; min-height: 60px;">${translationContent}</div>
+        <div id="translationContent_${currentNote.id}" class="collapsible-content" style="display: ${hasTranslation ? 'block' : 'none'};">
+            <div class="full-text editable-inline" data-field="translation" data-id="${currentNote.id}" style="font-size: 14px; line-height: 1.7; color: #1c1c1e; min-height: 60px;">${translationContent}</div>
         </div>
     </div>`;
     
     // 如果所有内容都为空，显示提示
-    if ((!currentNote.original || currentNote.original === '<p><br></p>') &&
-        (!currentNote.notes || currentNote.notes === '<p><br></p>') &&
-        (!currentNote.supplement || currentNote.supplement === '<p><br></p>') &&
-        (!currentNote.translation || currentNote.translation === '<p><br></p>')) {
+    if (!hasOriginal && !hasNotes && !hasSupplement && !hasTranslation) {
         contentHtml += `<div style="color: #aeaeb2; padding: 40px 20px; text-align: center;">📝 暂无内容，双击上方空白处添加</div>`;
     }
-}
-    else {
+}  else {
         
         
         
@@ -3829,63 +3890,71 @@ const toolbarOptions = [
 ];
 
 
-
 function initEditors() {
     const isClassic = ['lunyu', 'shijing', 'tangshi', 'songci'].includes(currentClassic);
     
-    console.log('初始化编辑器，模式:', isClassic ? '经典文献' : '历史人物');
-    
     if (isClassic) {
-        // 先销毁旧的
+        destroyEditors();
         
-      
-    destroyEditors();
-    // 不需要 setTimeout，直接初始化
-    const originalEl = document.getElementById('editorOriginal');
-    if (originalEl && !window.quillOriginal) {
-        window.quillOriginal = new Quill('#editorOriginal', { 
-            theme: 'snow', 
-            modules: { toolbar: toolbarOptions },
-            placeholder: '输入原文...'
-        });
-    }
-    
-    const notesEl = document.getElementById('editorNotes');
-    if (notesEl && !window.quillNotes) {
-        window.quillNotes = new Quill('#editorNotes', { 
-            theme: 'snow', 
-            modules: { toolbar: toolbarOptions },
-            placeholder: '输入注释...'
-        });
-    }
-    
-    const supplementEl = document.getElementById('editorSupplement');
-    if (supplementEl && !window.quillSupplement) {
-        window.quillSupplement = new Quill('#editorSupplement', { 
-            theme: 'snow', 
-            modules: { toolbar: toolbarOptions },
-            placeholder: '补充背景、评价等...'
-        });
-    }
-    
-    const translationEl = document.getElementById('editorTranslation');
-    if (translationEl && !window.quillTranslation) {
-        window.quillTranslation = new Quill('#editorTranslation', { 
-            theme: 'snow', 
-            modules: { toolbar: toolbarOptions },
-            placeholder: '输入译文...'
-        });
-    }
-}   else {
+        const originalEl = document.getElementById('editorOriginal');
+        if (originalEl && !window.quillOriginal) {
+            window.quillOriginal = new Quill('#editorOriginal', { 
+                theme: 'snow', 
+                modules: { toolbar: toolbarOptions },
+                placeholder: '输入原文...'
+            });
+            // 强制左对齐
+            window.quillOriginal.format('align', 'left');
+            window.quillOriginal.root.style.textAlign = 'left';
+        }
+        
+        const notesEl = document.getElementById('editorNotes');
+        if (notesEl && !window.quillNotes) {
+            window.quillNotes = new Quill('#editorNotes', { 
+                theme: 'snow', 
+                modules: { toolbar: toolbarOptions },
+                placeholder: '输入注释...'
+            });
+            window.quillNotes.format('align', 'left');
+            window.quillNotes.root.style.textAlign = 'left';
+        }
+        
+        const supplementEl = document.getElementById('editorSupplement');
+        if (supplementEl && !window.quillSupplement) {
+            window.quillSupplement = new Quill('#editorSupplement', { 
+                theme: 'snow', 
+                modules: { toolbar: toolbarOptions },
+                placeholder: '补充背景、评价等...'
+            });
+            window.quillSupplement.format('align', 'left');
+            window.quillSupplement.root.style.textAlign = 'left';
+        }
+        
+        const translationEl = document.getElementById('editorTranslation');
+        if (translationEl && !window.quillTranslation) {
+            window.quillTranslation = new Quill('#editorTranslation', { 
+                theme: 'snow', 
+                modules: { toolbar: toolbarOptions },
+                placeholder: '输入译文...'
+            });
+            window.quillTranslation.format('align', 'left');
+            window.quillTranslation.root.style.textAlign = 'left';
+        }
+    } else {
         if (document.getElementById('editorContent') && !window.quillContent) {
             window.quillContent = new Quill('#editorContent', { 
                 theme: 'snow', 
                 modules: { toolbar: toolbarOptions },
                 placeholder: '输入生平与成就...'
             });
+            window.quillContent.format('align', 'left');
+            window.quillContent.root.style.textAlign = 'left';
         }
     }
 }
+
+
+
 // 销毁编辑器（关闭模态窗时可选调用，避免重复初始化）
 function destroyEditors() {
     if (window.quillOriginal) { window.quillOriginal = null; }
