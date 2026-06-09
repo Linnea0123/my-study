@@ -508,12 +508,14 @@
 }
 
 .full-text li {
-    
-    margin-left: 20px !important;
-    padding-left: 0 !important;
-    position: relative;
+    margin-left: 24px !important;   /* 增大这个，圆点和文字一起右移 */
+    text-indent: -1px !important;   /* 负值让圆点向左移动，文字不动 */
 }
-
+/* 第二级 - 圆点稍微左移少一点（因为已经靠右了） */
+.full-text li.ql-indent-1 {
+    margin-left: 48px !important;
+    text-indent: -3px !important;
+}
 /* 确保内容区域不溢出 */
 .record-full-content {
     overflow-x: auto;
@@ -524,6 +526,8 @@
 .collapsible-content {
     overflow-x: auto;
 }
+
+
 
 /* 去除多余的滚动条，让内容全部展开 */
 .main-content {
@@ -773,20 +777,21 @@ body {
     color: white;
 }
 /* 缩进样式 */
+/* 编辑框缩进 - 调小数值 */
 .ql-editor .ql-indent-1 {
-    padding-left: 3em !important;
+    padding-left: 1.5em !important;   /* 原来 3em，缩小一半 */
 }
 .ql-editor .ql-indent-2 {
-    padding-left: 6em !important;
+    padding-left: 3em !important;     /* 原来 6em */
 }
 .ql-editor .ql-indent-3 {
-    padding-left: 9em !important;
+    padding-left: 4.5em !important;   /* 原来 9em */
 }
 .ql-editor .ql-indent-4 {
-    padding-left: 12em !important;
+    padding-left: 6em !important;     /* 原来 12em */
 }
 .ql-editor .ql-indent-5 {
-    padding-left: 15em !important;
+    padding-left: 7.5em !important;   /* 原来 15em */
 }
 
 /* 全文中保持缩进 */
@@ -827,28 +832,47 @@ body {
 
 
 /* 折叠按钮样式 - 在原圆点位置 */
+/* 折叠按钮样式 - 无悬浮效果，统一黑色 */
 .fold-toggle {
     cursor: pointer;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: 20px;
-    color: #000000!important;
-    font-size: 12px;
+    height: 20px;
     user-select: none;
     text-align: center;
     margin-right: 6px;
-    margin-left: -22px;  /* 向左偏移，占据圆点位置 */
-}
-.fold-toggle:hover {
-    color: #ff9500;
+    margin-left: -22px;
+    background: transparent;
+    border-radius: 0;
+    font-family: "Segoe UI Symbol", "Arial Unicode MS", monospace;
 }
 
-/* 列表项样式 */
-.full-text li {
-    list-style: none;
-    margin-left: 20px !important;
-    padding-left: 0 !important;
-    position: relative;
+/* 展开状态显示 ▼ */
+.fold-toggle[data-expanded="true"]::before {
+    content: "▼";
+    font-size: 9px;
+    color: #1c1c1e;
 }
+
+/* 收起状态显示 ▶ */
+.fold-toggle[data-expanded="false"]::before {
+    content: "▶";
+    font-size: 10px;
+    color: #1c1c1e;
+}
+
+/* 去掉悬浮效果 */
+.fold-toggle:hover {
+    background: transparent;
+}
+
+.fold-toggle:hover::before {
+    color: #1c1c1e;
+}
+
+
 /* 子列表样式 - 支持多级缩进 */
 .full-text li ul,
 .full-text li ol {
@@ -859,7 +883,10 @@ body {
 /* 或者直接通过缩进级别控制 */
 .full-text li.ql-indent-0 {
     margin-left: 20px !important;
+    
 }
+
+
 
 .full-text li.ql-indent-1 {
     margin-left: 44px !important;
@@ -936,10 +963,9 @@ body {
 }
 
 /* 没有折叠按钮的项 - 显示圆点 */
-.full-text li:not(.has-fold-btn) {
-    list-style: disc !important;
+.full-text li.has-fold-btn {
+    list-style: none !important;
 }
-
 
 
 .edit-tree-list {
@@ -2199,23 +2225,23 @@ function renderRecords() {
     let contentHtml = '<div class="record-card" style="margin: 0;">';
     contentHtml += `<div class="record-header">
     <div>
-        <span class="record-title">${escapeHtml(currentNote.chapter)}</span>
+        <span class="record-title" id="editableChapterTitle" style="cursor: pointer;" title="双击编辑目录名称">${escapeHtml(currentNote.chapter)}</span>
         ${!isClassic && currentNote.lifespan ? `<span style="margin-left: 12px; font-size: 13px; color: #8e8e93; font-family: monospace; background: #f2f2f6; padding: 4px 10px; border-radius: 20px;">${escapeHtml(currentNote.lifespan)}</span>` : ''}
     </div>
     <div class="record-header-right">
         <span class="record-meta">${new Date(currentNote.updatedAt).toLocaleDateString()}</span>
-<button class="edit-icon" data-id="${currentNote.id}" title="编辑" style="background:none; border:none; cursor: pointer; padding: 4px 6px; border-radius: 6px;">
-    <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-    </svg>
-</button>
-
-
+        <button class="edit-icon" data-id="${currentNote.id}" title="编辑" style="background:none; border:none; cursor: pointer; padding: 4px 6px; border-radius: 6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
+        </button>
         <button class="delete-icon" data-id="${currentNote.id}" title="删除笔记" style="background:none; border:none; font-size: 20px; cursor: pointer; color: #8e8e93;">×</button>
     </div>
 </div>`;
-    contentHtml += '<div class="record-full-content">';
+
+
+contentHtml += '<div class="record-full-content">';
     
     if (isClassic) {
         // ========== 经典文献模式：原文、注释、补充、译文 ==========
@@ -2329,6 +2355,9 @@ function renderRecords() {
     
     contentHtml += '</div></div>';
     container.innerHTML = contentHtml;
+
+
+
     
     // ========== 大纲折叠功能（仅历史人物模式需要） ==========
     if (!isClassic) {
@@ -2372,10 +2401,11 @@ function renderRecords() {
                 
                 if (children.length > 0 && !current.li.querySelector('.fold-toggle')) {
                     const firstChild = current.li.firstChild;
+                    
                     const foldBtn = document.createElement('span');
                     foldBtn.className = 'fold-toggle';
-                    foldBtn.innerHTML = '▼';
-                    foldBtn.setAttribute('data-expanded', 'true');
+                   
+                    foldBtn.setAttribute('data-expanded', 'false');
                     foldBtn.style.cssText = 'cursor: pointer; display: inline-block; width: 20px; color: #61A2DA; font-size: 12px; user-select: none; text-align: center; margin-right: 6px;';
                     
                     if (firstChild) {
@@ -2387,20 +2417,24 @@ function renderRecords() {
                     foldBtn._children = children;
                     
                     foldBtn.onclick = function(e) {
-                        e.stopPropagation();
-                        const isExpanded = this.getAttribute('data-expanded') === 'true';
-                        const childrenLis = this._children;
-                        
-                        if (isExpanded) {
-                            childrenLis.forEach(child => child.style.display = 'none');
-                            this.innerHTML = '▶';
-                            this.setAttribute('data-expanded', 'false');
-                        } else {
-                            childrenLis.forEach(child => child.style.display = '');
-                            this.innerHTML = '▼';
-                            this.setAttribute('data-expanded', 'true');
-                        }
-                    };
+    e.stopPropagation();
+    const isExpanded = this.getAttribute('data-expanded') === 'true';
+    const childrenLis = this._children;
+    
+    if (isExpanded) {
+        childrenLis.forEach(child => child.style.display = 'none');
+        this.setAttribute('data-expanded', 'false');
+        // 不再设置 innerHTML，由 CSS 伪元素控制
+    } else {
+        childrenLis.forEach(child => child.style.display = '');
+        this.setAttribute('data-expanded', 'true');
+    }
+};
+
+// 初始状态：展开
+foldBtn.setAttribute('data-expanded', 'false');
+// 初始折叠：隐藏所有子元素
+children.forEach(child => child.style.display = 'none');
                 }
             }
             
@@ -2446,6 +2480,59 @@ function renderRecords() {
             }
         });
     });
+
+
+
+// 标题双击编辑（新增功能）
+const titleSpan = document.getElementById('editableChapterTitle');
+if (titleSpan) {
+    titleSpan.ondblclick = (e) => {
+        e.stopPropagation();
+        const oldName = currentChapter;
+        const newName = prompt('编辑目录名称:', oldName);
+        
+        if (newName && newName.trim() && newName !== oldName) {
+            const newNameTrimmed = newName.trim();
+            
+            // 更新目录树
+            function updateNodeName(nodes, oldName, newName) {
+                for (let node of nodes) {
+                    if (node.name === oldName) {
+                        node.name = newName;
+                        return true;
+                    }
+                    if (node.children && updateNodeName(node.children, oldName, newName)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            updateNodeName(getCurrentTree(), oldName, newNameTrimmed);
+            saveTrees();
+            
+            // 同步笔记
+            let updatedCount = 0;
+            notes = notes.map(note => {
+                if (note.classic === currentClassic && note.chapter === oldName) {
+                    updatedCount++;
+                    return { ...note, chapter: newNameTrimmed, updatedAt: new Date().toISOString() };
+                }
+                return note;
+            });
+            
+            if (updatedCount > 0) {
+                saveNotes();
+            }
+            
+            currentChapter = newNameTrimmed;
+            saveCurrent();
+            renderTree();
+            renderRecords();
+            showMsg(`✅ 已重命名并同步 ${updatedCount} 条笔记`);
+        }
+    };
+}
+
     
     // 相关人物点击跳转（仅历史模式）
     if (!isClassic) {
@@ -3128,9 +3215,6 @@ function addNewTag() {
 }
 
 
-    // 渲染可编辑的目录树（支持收缩/展开）
-// 渲染可编辑的目录树（支持收缩/展开）
-// 渲染可编辑的目录树（支持收缩/展开）
 function renderCatalogTree(resetCollapsed = false) {
     const container = document.getElementById('catalogTreeList');
     if (!container) return;
@@ -3214,7 +3298,7 @@ function renderCatalogTree(resetCollapsed = false) {
             leftArea.appendChild(placeholder);
         }
         
-        // 名称（可编辑）
+        // ========== 名称（可编辑）- 已修复笔记同步 ==========
         const nameSpan = document.createElement('span');
         nameSpan.textContent = node.name;
         nameSpan.style.cursor = 'pointer';
@@ -3223,13 +3307,51 @@ function renderCatalogTree(resetCollapsed = false) {
         nameSpan.title = '双击编辑名称';
         nameSpan.ondblclick = (e) => {
             e.stopPropagation();
-            const newName = prompt('请输入新名称:', node.name);
-            if (newName && newName.trim()) {
-                node.name = newName.trim();
+            const oldName = node.name;  // 保存旧名称
+            const newName = prompt('请输入新名称:', oldName);
+            
+            if (newName && newName.trim() && newName !== oldName) {
+                const newNameTrimmed = newName.trim();
+                
+                // 1. 更新目录树中的名称
+                node.name = newNameTrimmed;
                 saveTrees();
+                
+                // 2. 🔥 关键修复：同步更新所有关联笔记的 chapter 字段
+                let updatedCount = 0;
+                notes = notes.map(note => {
+                    if (note.classic === currentClassic && note.chapter === oldName) {
+                        updatedCount++;
+                        console.log(`同步笔记: "${oldName}" -> "${newNameTrimmed}"`);
+                        return { 
+                            ...note, 
+                            chapter: newNameTrimmed, 
+                            updatedAt: new Date().toISOString() 
+                        };
+                    }
+                    return note;
+                });
+                
+                if (updatedCount > 0) {
+                    saveNotes();
+                    console.log(`已同步 ${updatedCount} 条笔记`);
+                }
+                
+                // 3. 如果当前正在查看被重命名的章节，更新 currentChapter
+                if (currentChapter === oldName) {
+                    currentChapter = newNameTrimmed;
+                    saveCurrent();
+                    console.log(`当前章节已同步: "${oldName}" -> "${newNameTrimmed}"`);
+                }
+                
+                // 4. 刷新所有界面
                 renderTree();
                 renderCatalogTree();
-                showMsg('已重命名');
+                renderRecords();  // 强制刷新笔记显示
+                
+                showMsg(updatedCount > 0 
+                    ? `✅ 已重命名「${oldName}」为「${newNameTrimmed}」，并同步了 ${updatedCount} 条笔记` 
+                    : `✅ 目录已重命名「${oldName}」为「${newNameTrimmed}」`);
             }
         };
         leftArea.appendChild(nameSpan);
@@ -3263,7 +3385,7 @@ function renderCatalogTree(resetCollapsed = false) {
         delBtn.title = '删除目录';
         delBtn.onclick = (e) => {
             e.stopPropagation();
-            if (confirm(`确定要删除「${node.name}」及其所有子目录吗？`)) {
+            if (confirm(`确定要删除「${node.name}」及其所有子目录吗？\n\n⚠️ 注意：该目录下的笔记不会被自动删除，但可能无法通过目录访问。`)) {
                 function deleteNode(nodes, targetId) {
                     for (let i = 0; i < nodes.length; i++) {
                         if (nodes[i].id === targetId) {
@@ -3300,7 +3422,12 @@ function renderCatalogTree(resetCollapsed = false) {
     
     currentTree.forEach(node => renderNode(node, 0));
 }
-    function renderNode(parentEl, node, level) {
+
+
+
+
+
+function renderNode(parentEl, node, level) {
     const div = document.createElement('div');
     div.className = 'tree-node';
     const hasChildren = node.children && node.children.length > 0;
