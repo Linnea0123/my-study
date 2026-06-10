@@ -1952,7 +1952,57 @@ function bindLifespanEvents() {
     // 默认目录数据（保留你原来的 defaultTrees，这里只是示意结构）
     let trees = JSON.parse(JSON.stringify(defaultTrees));
     // 为每个网页生成唯一标识（使用页面标题，确保不同网页独立存储）
-const PAGE_ID = 'learning_lib_main';  // 不同网页改成不同值，如 'china_history', 'lunyu_study'
+const PAGE_ID = 'learning_lib_main';  
+
+
+
+// ✅ 在这里添加工具函数
+function getGistCredentials() {
+    return {
+        token: localStorage.getItem(PAGE_ID + '_github_token'),
+        gistId: localStorage.getItem(PAGE_ID + '_gist_id')
+    };
+}
+
+function saveGistCredentials(token, gistId) {
+    if (token) localStorage.setItem(PAGE_ID + '_github_token', token);
+    if (gistId) localStorage.setItem(PAGE_ID + '_gist_id', gistId);
+}
+function setButtonLoading(btn, isLoading) {
+    if (!btn) return;
+    if (isLoading) {
+        btn.style.opacity = '0.6';
+        btn.style.pointerEvents = 'none';
+        const svg = btn.querySelector('svg');
+        if (svg && !btn._originalSvgHtml) {
+            btn._originalSvgHtml = svg.innerHTML;
+            btn._originalStroke = svg.getAttribute('stroke') || '#8e8e93';
+            svg.setAttribute('stroke', '#34c759');
+            svg.style.animation = 'spin 1s linear infinite';
+            if (!document.querySelector('#spin-style')) {
+                const style = document.createElement('style');
+                style.id = 'spin-style';
+                style.textContent = '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }';
+                document.head.appendChild(style);
+            }
+        }
+    } else {
+        btn.style.opacity = '';
+        btn.style.pointerEvents = '';
+        const svg = btn.querySelector('svg');
+        if (svg) {
+            svg.style.animation = '';
+            if (btn._originalStroke) {
+                svg.setAttribute('stroke', btn._originalStroke);
+            } else {
+                svg.setAttribute('stroke', '#8e8e93');
+            }
+        }
+    }
+}
+
+
+// 不同网页改成不同值，如 'china_history', 'lunyu_study'
     let currentClassic = 'china';
     let currentChapter = "秦始皇";
     let notes = [];
@@ -1978,11 +2028,12 @@ function loadTrees() {
         trees = JSON.parse(JSON.stringify(defaultTrees));
     }
     
-    // 确保所有分类都有目录树（防止缺失）
+    // 确保所有分类都有目录树（从 defaultTrees 补全，而不是设为空数组）
     const allClassics = ['china', 'world', 'lunyu', 'shijing', 'tangshi', 'songci'];
     for (let classic of allClassics) {
-        if (!trees[classic]) {
-            trees[classic] = [];
+        if (!trees[classic] || trees[classic].length === 0) {
+            // 从 defaultTrees 补全
+            trees[classic] = JSON.parse(JSON.stringify(defaultTrees[classic] || []));
         }
     }
 }
@@ -4259,89 +4310,102 @@ const addTagBtn = document.getElementById('addTagBtn');
 if (addTagBtn) {
     addTagBtn.addEventListener('click', addNewTag);
 }
-    // 头部上传按钮 - 直接从 localStorage 读取
-    const headerSaveToGistBtn = document.getElementById('headerSaveToGistBtn');
-    if (headerSaveToGistBtn) {
-        headerSaveToGistBtn.onclick = async () => {
-            console.log('上传按钮被点击');
+   // 头部上传按钮
+const headerSaveToGistBtn = document.getElementById('headerSaveToGistBtn');
+if (headerSaveToGistBtn) {
+    headerSaveToGistBtn.onclick = async () => {
+        console.log('上传按钮被点击');
+        
+        const token = localStorage.getItem(PAGE_ID + '_github_token');
+        const gistId = localStorage.getItem(PAGE_ID + '_gist_id');
+        
+        if (!token || !gistId) {
+            alert('请先在设置中保存 Token 和 Gist ID');
+            showSyncStatus('请先在设置中保存 Token 和 Gist ID', 'error');
+            return;
+        }
+        
+        const backupData = { version: '1.0', backupTime: new Date().toISOString(), notes, trees };
+        showSyncStatus('正在上传...', 'info');
+        
+        // ✅ 添加：显示加载状态
+        setButtonLoading(headerSaveToGistBtn, true);
+        
+        try {
+            const updateRes = await fetch(`https://api.github.com/gists/${gistId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    files: { 'history_backup.json': { content: JSON.stringify(backupData, null, 2) } }
+                })
+            });
             
-           const token = localStorage.getItem(PAGE_ID + '_github_token');
-const gistId = localStorage.getItem(PAGE_ID + '_gist_id');
-            if (!token || !gistId) {
-                alert('请先在设置中保存 Token 和 Gist ID');
-                showSyncStatus('请先在设置中保存 Token 和 Gist ID', 'error');
-                return;
-            }
+            if (!updateRes.ok) throw new Error(`上传失败: ${updateRes.status}`);
             
-            const backupData = { version: '1.0', backupTime: new Date().toISOString(), notes, trees };
-            showSyncStatus('正在上传...', 'info');
-            
-            try {
-                const updateRes = await fetch(`https://api.github.com/gists/${gistId}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Authorization': `token ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        files: { 'history_backup.json': { content: JSON.stringify(backupData, null, 2) } }
-                    })
-                });
-                
-                if (!updateRes.ok) throw new Error(`上传失败: ${updateRes.status}`);
-                
-                showSyncStatus('✅ 上传成功', 'success');
-                alert('✅ 上传成功！数据已保存到 Gist');
-            } catch (err) {
-                console.error(err);
-                showSyncStatus('❌ 上传失败: ' + err.message, 'error');
-                alert('❌ 上传失败: ' + err.message);
-            }
-        };
-    }
-    
+            showSyncStatus('✅ 上传成功', 'success');
+            alert('✅ 上传成功！数据已保存到 Gist');
+        } catch (err) {
+            console.error(err);
+            showSyncStatus('❌ 上传失败: ' + err.message, 'error');
+            alert('❌ 上传失败: ' + err.message);
+        } finally {
+            // ✅ 添加：无论成功失败都恢复按钮状态
+            setButtonLoading(headerSaveToGistBtn, false);
+        }
+    };
+}
+
+
     // 头部恢复按钮 - 直接从 localStorage 读取
-    const headerLoadFromGistBtn = document.getElementById('headerLoadFromGistBtn');
-    if (headerLoadFromGistBtn) {
-        headerLoadFromGistBtn.onclick = async () => {
-            console.log('恢复按钮被点击');
+ // 头部恢复按钮
+const headerLoadFromGistBtn = document.getElementById('headerLoadFromGistBtn');
+if (headerLoadFromGistBtn) {
+    headerLoadFromGistBtn.onclick = async () => {
+        const token = localStorage.getItem(PAGE_ID + '_github_token');
+        const gistId = localStorage.getItem(PAGE_ID + '_gist_id');
+        
+        if (!token || !gistId) {
+            alert('请先在设置中保存 Token 和 Gist ID');
+            showSyncStatus('请先在设置中保存 Token 和 Gist ID', 'error');
+            return;
+        }
+        
+        showSyncStatus('正在恢复...', 'info');
+        
+        // ✅ 添加：显示加载状态
+        setButtonLoading(headerLoadFromGistBtn, true);
+        
+        try {
+            const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+                headers: { 'Authorization': `token ${token}` }
+            });
+            if (!res.ok) throw new Error(`获取失败: ${res.status}`);
             
-            const token = localStorage.getItem('github_token');
-            const gistId = localStorage.getItem('gist_id');
+            const gistData = await res.json();
+            const firstFile = gistData.files[Object.keys(gistData.files)[0]];
+            if (!firstFile?.content) throw new Error('无数据');
             
-            if (!token || !gistId) {
-                alert('请先在设置中保存 Token 和 Gist ID');
-                showSyncStatus('请先在设置中保存 Token 和 Gist ID', 'error');
-                return;
-            }
+            const backupData = JSON.parse(firstFile.content);
+            if (backupData.notes) { notes = backupData.notes; saveNotes(); }
+            if (backupData.trees) { trees = backupData.trees; saveTrees(); }
             
-            showSyncStatus('正在恢复...', 'info');
-            
-            try {
-                const res = await fetch(`https://api.github.com/gists/${gistId}`, {
-                    headers: { 'Authorization': `token ${token}` }
-                });
-                if (!res.ok) throw new Error(`获取失败: ${res.status}`);
-                
-                const gistData = await res.json();
-                const firstFile = gistData.files[Object.keys(gistData.files)[0]];
-                if (!firstFile?.content) throw new Error('无数据');
-                
-                const backupData = JSON.parse(firstFile.content);
-                if (backupData.notes) { notes = backupData.notes; saveNotes(); }
-                if (backupData.trees) { trees = backupData.trees; saveTrees(); }
-                
-                renderTree();
-                renderRecords();
-                showSyncStatus('✅ 恢复成功', 'success');
-                alert('✅ 恢复成功！数据已从 Gist 同步');
-            } catch (err) {
-                console.error(err);
-                showSyncStatus('❌ 恢复失败: ' + err.message, 'error');
-                alert('❌ 恢复失败: ' + err.message);
-            }
-        };
-    }
+            renderTree();
+            renderRecords();
+            showSyncStatus('✅ 恢复成功', 'success');
+            alert('✅ 恢复成功！数据已从 Gist 同步');
+        } catch (err) {
+            console.error(err);
+            showSyncStatus('❌ 恢复失败: ' + err.message, 'error');
+            alert('❌ 恢复失败: ' + err.message);
+        } finally {
+            // ✅ 添加：恢复按钮状态
+            setButtonLoading(headerLoadFromGistBtn, false);
+        }
+    };
+}
     
     // 设置按钮（打开设置并加载保存的配置）
     const settingsBtn = document.getElementById('settingsBtn');
@@ -4479,41 +4543,114 @@ if (editCatalogBtn) {
 
 
     
-// Gist 同步功能
-    async function saveToGist() {
-        const token = document.getElementById('githubToken').value, gistId = document.getElementById('gistIdInput').value;
-        if (!token || !gistId) { showSyncStatus('请填写 Token 和 Gist ID', 'error'); return; }
-        const backupData = { version: '1.0', backupTime: new Date().toISOString(), notes, trees };
-        showSyncStatus('正在保存...', 'info');
-        try {
-            const getRes = await fetch(`https://api.github.com/gists/${gistId}`, { headers: { 'Authorization': `token ${token}` } });
-            if (!getRes.ok) throw new Error('获取失败');
-            const gistData = await getRes.json();
-            const filename = Object.keys(gistData.files)[0] || 'history_backup.json';
-            const updateRes = await fetch(`https://api.github.com/gists/${gistId}`, { method: 'PATCH', headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ files: { [filename]: { content: JSON.stringify(backupData, null, 2) } } }) });
-            if (!updateRes.ok) throw new Error('更新失败');
-            showSyncStatus('✅ 同步成功', 'success');
-        } catch (err) { showSyncStatus('❌ 失败: ' + err.message, 'error'); }
+
+
+
+// Gist 同步功能 - 上传
+async function saveToGist() {
+    const btn = document.getElementById('saveToGistBtn');
+    const token = document.getElementById('githubToken').value;
+    const gistId = document.getElementById('gistIdInput').value;
+    
+    if (!token || !gistId) { 
+        showSyncStatus('请填写 Token 和 Gist ID', 'error'); 
+        return; 
     }
     
-    async function loadFromGist() {
-        const token = document.getElementById('githubToken').value, gistId = document.getElementById('gistIdInput').value;
-        if (!token || !gistId) { showSyncStatus('请填写 Token 和 Gist ID', 'error'); return; }
-        showSyncStatus('正在恢复...', 'info');
-        try {
-            const res = await fetch(`https://api.github.com/gists/${gistId}`, { headers: { 'Authorization': `token ${token}` } });
-            if (!res.ok) throw new Error('获取失败');
-            const gistData = await res.json();
-            const firstFile = gistData.files[Object.keys(gistData.files)[0]];
-            if (!firstFile?.content) throw new Error('无数据');
-            const backupData = JSON.parse(firstFile.content);
-            if (backupData.notes) { notes = backupData.notes; saveNotes(); }
-            if (backupData.trees) { trees = backupData.trees; saveTrees(); }
-            renderTree(); renderRecords();
-            showSyncStatus('✅ 恢复成功', 'success');
-        } catch (err) { showSyncStatus('❌ 失败: ' + err.message, 'error'); }
+    const backupData = { version: '1.0', backupTime: new Date().toISOString(), notes, trees };
+    showSyncStatus('正在保存...', 'info');
+    
+    // 显示加载状态
+    setButtonLoading(btn, true);
+    
+    try {
+        // 先获取现有的 gist 数据，获取文件名
+        const getRes = await fetch(`https://api.github.com/gists/${gistId}`, { 
+            headers: { 'Authorization': `token ${token}` } 
+        });
+        if (!getRes.ok) throw new Error('获取 Gist 失败');
+        
+        const gistData = await getRes.json();
+        const filename = Object.keys(gistData.files)[0] || 'history_backup.json';
+        
+        // 更新 Gist
+        const updateRes = await fetch(`https://api.github.com/gists/${gistId}`, { 
+            method: 'PATCH', 
+            headers: { 
+                'Authorization': `token ${token}`, 
+                'Content-Type': 'application/json' 
+            }, 
+            body: JSON.stringify({ 
+                files: { 
+                    [filename]: { content: JSON.stringify(backupData, null, 2) } 
+                } 
+            }) 
+        });
+        
+        if (!updateRes.ok) throw new Error(`上传失败: ${updateRes.status}`);
+        
+        showSyncStatus('✅ 同步成功', 'success');
+        alert('✅ 上传成功！数据已保存到 Gist');
+    } catch (err) { 
+        showSyncStatus('❌ 失败: ' + err.message, 'error');
+        alert('❌ 上传失败: ' + err.message);
+    } finally {
+        // 恢复按钮状态
+        setButtonLoading(btn, false);
+    }
+}
+
+// Gist 同步功能 - 恢复
+async function loadFromGist() {
+    const btn = document.getElementById('loadFromGistBtn');
+    const token = document.getElementById('githubToken').value;
+    const gistId = document.getElementById('gistIdInput').value;
+    
+    if (!token || !gistId) { 
+        showSyncStatus('请填写 Token 和 Gist ID', 'error'); 
+        return; 
     }
     
+    showSyncStatus('正在恢复...', 'info');
+    
+    // 显示加载状态
+    setButtonLoading(btn, true);
+    
+    try {
+        const res = await fetch(`https://api.github.com/gists/${gistId}`, { 
+            headers: { 'Authorization': `token ${token}` } 
+        });
+        if (!res.ok) throw new Error(`获取失败: ${res.status}`);
+        
+        const gistData = await res.json();
+        const firstFile = gistData.files[Object.keys(gistData.files)[0]];
+        if (!firstFile?.content) throw new Error('无数据');
+        
+        const backupData = JSON.parse(firstFile.content);
+        if (backupData.notes) { 
+            notes = backupData.notes; 
+            saveNotes(); 
+        }
+        if (backupData.trees) { 
+            trees = backupData.trees; 
+            saveTrees(); 
+        }
+        
+        renderTree(); 
+        renderRecords();
+        showSyncStatus('✅ 恢复成功', 'success');
+        alert('✅ 恢复成功！数据已从 Gist 同步');
+    } catch (err) { 
+        showSyncStatus('❌ 失败: ' + err.message, 'error');
+        alert('❌ 恢复失败: ' + err.message);
+    } finally {
+        // 恢复按钮状态
+        setButtonLoading(btn, false);
+    }
+}
+    
+   
+
 
 function saveGistSettings() {
     const token = document.getElementById('githubToken').value;
