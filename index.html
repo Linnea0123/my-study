@@ -8,7 +8,11 @@
     <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
     <style>
-        * {
+        * 
+        
+        
+        
+        {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -125,9 +129,11 @@
 }
 
 .chapters-tree {
-    flex: 1;  /* 自动占满剩余空间 */
+    flex: 1;
     overflow-y: auto;
     background: transparent;
+    margin-left: 0;      /* 添加 */
+    padding-left: 0;     /* 添加 */
 }
 
         .main-content {
@@ -149,17 +155,17 @@
         }
 
         .level-1 {
-            font-size: 15px;
-            font-weight: 500;
-            padding: 10px 12px;
-            margin: 2px 0;
-            background: transparent;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-radius: 8px;
-        }
+    font-size: 15px;
+    font-weight: 500;
+    padding: 10px 12px 10px 0px;   /* 左边距改为 0 */
+    margin: 2px 0;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 8px;
+}
 
         .level-2 {
             font-size: 14px;
@@ -202,15 +208,16 @@
         }
 
         .chevron {
-            font-size: 16px;
-            font-weight: 500;
-            color: #8e8e93;
-            transition: transform 0.2s;
-            margin-right: 10px;
-            width: 22px;
-            display: inline-block;
-            text-align: center;
-        }
+    font-size: 16px;
+    font-weight: 500;
+    color: #8e8e93;
+    transition: transform 0.2s;
+    margin-right: 4px;
+    margin-left: 0;          /* 确保左边距为 0 */
+    width: 18px;
+    display: inline-block;
+    text-align: center;
+}
         .chevron.open {
             transform: rotate(90deg);
         }
@@ -479,7 +486,15 @@
             .header { flex-direction: column; align-items: stretch; }
             .header-left { justify-content: space-between; }
             .two-columns { flex-direction: column; }
-            .sidebar { border-right: none; border-bottom: 0.5px solid #e5e5ea; }
+.sidebar {
+    flex: 0.5;
+    min-width: 260px;
+    background: #ffffff;
+    border-right: 0.5px solid #e5e5ea;
+    padding: 20px 16px 24px 0px;   /* 左边距改为 0 */
+    display: flex;
+    flex-direction: column;
+}
         }
 
 
@@ -1167,23 +1182,116 @@ body {
 .editable-inline {
     padding: -4px 8px !important;
 }
+
+/* 手机端菜单按钮 - 默认隐藏，手机端显示 */
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 8px;
+    margin-right: 8px;
+    border-radius: 8px;
+    color: #61A2DA;
+}
+
+/* 手机端侧边栏遮罩层 */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+    z-index: 998;
+}
+
+/* 手机端适配 */
+@media (max-width: 768px) {
+    .menu-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .two-columns {
+        position: relative;
+    }
+    
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: -250px;
+        width: 150px;
+        height: 100%;
+        z-index: 999;
+        background: #ffffff;
+        transition: left 0.3s ease;
+        box-shadow: 2px 0 12px rgba(0,0,0,0.1);
+        border-right: none;
+        padding-top: 60px;
+    }
+    
+    .sidebar.open {
+        left: 0;
+    }
+    
+    .sidebar-overlay.active {
+        display: block;
+    }
+    
+    .main-content {
+        width: 100%;
+        padding: 16px;
+    }
+    
+    .header-left {
+        flex: 1;
+    }
+    
+    .classic-tabs {
+        flex-wrap: wrap;
+    }
+}
+/* 目录右侧圆点样式 */
+.content-dot {
+    width: 6px;
+    height: 6px;
+    background: #61A2DA;
+    border-radius: 50%;
+    display: inline-block;
+    margin-left: 4px;
+    flex-shrink: 0;
+}
+
+/* 手机端圆点更小 */
+@media (max-width: 768px) {
+    .content-dot {
+        width: 5px;
+        height: 5px;
+        margin-left: 3px;
+    }
+}
+
     </style>
 </head>
 <body>
 <div class="app-container">
     <div class="header">
         <div class="header-left">
-            <h1>学习录</h1>
-            <div class="classic-tabs" id="classicTabsContainer">
-                <button class="classic-btn" data-classic="china">中国历史</button>
-                <button class="classic-btn" data-classic="world">世界历史</button>
-            <!-- 新增四个标签 -->
-    <button class="classic-btn" data-classic="lunyu">论语</button>
-    <button class="classic-btn" data-classic="shijing">诗经</button>
-    <button class="classic-btn" data-classic="tangshi">唐诗</button>
-    <button class="classic-btn" data-classic="songci">宋词</button>
-            </div>
-        </div>
+    <button id="menuToggleBtn" class="menu-toggle" title="菜单">☰</button>
+    <h1>学习录</h1>
+    <div class="classic-tabs" id="classicTabsContainer">
+        <button class="classic-btn" data-classic="china">中国历史</button>
+        <button class="classic-btn" data-classic="world">世界历史</button>
+        <button class="classic-btn" data-classic="lunyu">论语</button>
+        <button class="classic-btn" data-classic="shijing">诗经</button>
+        <button class="classic-btn" data-classic="tangshi">唐诗</button>
+        <button class="classic-btn" data-classic="songci">宋词</button>
+    </div>
+</div>
         
 
 
@@ -1256,7 +1364,8 @@ body {
     </div>
     <footer>历史文库 · 目录自定义 · Gist云同步</footer>
 </div>
-
+<!-- 侧边栏遮罩层 -->
+<div id="sidebarOverlay" class="sidebar-overlay"></div>
 
 <!-- 搜索模态窗 -->
 <div id="searchModal" class="modal-mask">
@@ -3701,7 +3810,7 @@ function renderCatalogTree(resetCollapsed = false) {
 
 
 function renderNode(parentEl, node, level) {
-    const div = document.createElement('div');
+     const div = document.createElement('div');
     div.className = 'tree-node';
     const hasChildren = node.children && node.children.length > 0;
     const header = document.createElement('div');
@@ -3713,11 +3822,15 @@ function renderNode(parentEl, node, level) {
     const hasContent = checkNodeHasContent(node.name);
     
     // 右侧显示圆点（如果有内容）
-    const rightDot = hasContent ? `<span style="width: 8px; height: 8px; background: #61A2DA; border-radius: 50%; display: inline-block; margin-left: 8px;"></span>` : '';
+const rightDot = hasContent ? `<span style="width: 6px; height: 6px; background: #61A2DA; border-radius: 50%; display: inline-block; margin-left: 0px; flex-shrink: 0;"></span>` : '';    // 箭头和文字 - 去掉左边多余空白
+    let chevronHtml = '';
+    if (hasChildren) {
+        chevronHtml = `<span class="chevron" style="margin-right: 4px; margin-left: 0; width: 18px; display: inline-block; text-align: center; flex-shrink: 0;">›</span>`;
+    } else {
+        chevronHtml = `<span style="width: 18px; display: inline-block; flex-shrink: 0;"></span>`;
+    }
     
-    const chevronHtml = hasChildren ? `<span class="chevron">›</span>` : `<span style="width:20px;display:inline-block"></span>`;
-    header.innerHTML = `<div style="display:flex; align-items:center; flex:1">${chevronHtml}<span class="node-title">${escapeHtml(node.name)}</span></div><div style="display:flex; align-items:center;">${rightDot}</div>`;
-    
+    header.innerHTML = `<div style="display:flex; align-items:center; flex:1; min-width:0;">${chevronHtml}<span class="node-title" style="flex:1; word-break: break-word;">${escapeHtml(node.name)}</span></div><div style="display:flex; align-items:center; flex-shrink: 0;">${rightDot}</div>`;
     if (currentChapter === node.name) header.classList.add('active-chapter');
     
     const titleSpan = header.querySelector('.node-title');
@@ -3774,14 +3887,42 @@ function checkNodeHasContent(nodeName) {
         return note.content && note.content !== '<p><br></p>';
     }
 }
-    function selectChapter(name) {
-        currentChapter = name;
-        saveCurrent();
-        renderTree();
-        renderRecords();
-        showMsg(`当前人物：${name}`);
+
+// ========== 手机端侧边栏控制（放在所有使用它的函数之前） ==========
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (sidebar) {
+        sidebar.classList.toggle('open');
+        if (overlay) {
+            overlay.classList.toggle('active');
+        }
     }
+}
+
+function closeSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (sidebar) {
+        sidebar.classList.remove('open');
+        if (overlay) {
+            overlay.classList.remove('active');
+        }
+    }
+}
+
+   function selectChapter(name) {
+    currentChapter = name;
+    saveCurrent();
+    renderTree();
+    renderRecords();
+    showMsg(`当前人物：${name}`);
     
+    // 手机端点击后自动关闭侧边栏
+    if (window.innerWidth <= 768) {
+        closeSidebar();
+    }
+}
     
     
     function saveCurrent() { 
@@ -3807,7 +3948,6 @@ function switchClassic(type) {
     renderTree();
     renderRecords();
     
-    // 获取分类名称
     const classicNamesMap = {
         'china': '中国历史',
         'world': '世界历史',
@@ -3818,8 +3958,12 @@ function switchClassic(type) {
     };
     const name = classicNamesMap[type] || window.classicNames?.[type] || type;
     showMsg(`切换到${name}`);
+    
+    // 手机端切换分类后自动关闭侧边栏
+    if (window.innerWidth <= 768) {
+        closeSidebar();
+    }
 }
-
 
     function updateClassicUI() {
         document.querySelectorAll('.classic-btn').forEach(btn => {
@@ -4045,6 +4189,24 @@ function showMsg(msg) {
 
 
 function bindEvents() {
+// 手机端菜单开关
+const menuToggleBtn = document.getElementById('menuToggleBtn');
+const sidebar = document.querySelector('.sidebar');
+const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+
+if (menuToggleBtn) {
+    menuToggleBtn.addEventListener('click', toggleSidebar);
+}
+
+if (sidebarOverlay) {
+    sidebarOverlay.addEventListener('click', closeSidebar);
+}
+
+// 点击目录中的章节后，在手机上自动关闭侧边栏
+// 找到 selectChapter 函数，在最后添加：
+// if (window.innerWidth <= 768) closeSidebar();
+
 // 搜索按钮
 const searchBtn = document.getElementById('searchBtn');
 if (searchBtn) {
