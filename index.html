@@ -6279,21 +6279,43 @@ setTimeout(async () => {
                     let mergedCount = 0;
                     
                     // 合并笔记（不覆盖本地已有的）
-                    if (backupData.notes && Array.isArray(backupData.notes)) {
-                        const existingKeys = new Set(notes.map(n => `${n.classic}|${n.chapter}`));
-                        for (const cloudNote of backupData.notes) {
-                            const key = `${cloudNote.classic}|${cloudNote.chapter}`;
-                            if (!existingKeys.has(key)) {
-                                notes.push(cloudNote);
-                                mergedCount++;
-                            }
-                        }
-                        if (mergedCount > 0) {
-                            saveNotes();
-                            console.log(`✅ 合并了 ${mergedCount} 条云端笔记`);
-                        }
-                    }
-                    
+                   // 合并笔记（按更新时间判断，保留最新版本）
+if (backupData.notes && Array.isArray(backupData.notes)) {
+    let addedCount = 0;
+    let updatedCount = 0;
+    
+    for (const cloudNote of backupData.notes) {
+        const key = `${cloudNote.classic}|${cloudNote.chapter}`;
+        const existingIndex = notes.findIndex(n => `${n.classic}|${n.chapter}` === key);
+        
+        if (existingIndex === -1) {
+            // 本地没有，直接添加
+            notes.push(cloudNote);
+            addedCount++;
+            console.log(`➕ 新增笔记: ${cloudNote.chapter}`);
+        } else {
+            // 本地已有，比较更新时间
+            const localNote = notes[existingIndex];
+            const localTime = new Date(localNote.updatedAt || localNote.createdAt || '1970-01-01');
+            const cloudTime = new Date(cloudNote.updatedAt || cloudNote.createdAt || '1970-01-01');
+            
+            if (cloudTime > localTime) {
+                // 云端版本更新，覆盖本地
+                notes[existingIndex] = cloudNote;
+                updatedCount++;
+                console.log(`🔄 更新笔记: ${cloudNote.chapter} (云端更新)`);
+            } else {
+                console.log(`⏭️ 保留本地: ${localNote.chapter} (本地更新)`);
+            }
+        }
+    }
+    
+    if (addedCount > 0 || updatedCount > 0) {
+        saveNotes();
+        console.log(`✅ 云端合并完成: 新增 ${addedCount} 条，更新 ${updatedCount} 条`);
+        showMsg(`📦 已同步: 新增 ${addedCount} 条，更新 ${updatedCount} 条`);
+    }
+}
                     // 合并目录树（不覆盖本地已有的分类和节点）
                     if (backupData.trees) {
                         let treeMerged = false;
