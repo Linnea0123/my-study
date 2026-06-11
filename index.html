@@ -31,14 +31,19 @@
     -webkit-font-smoothing: antialiased;
     min-height: 100vh;
 }
-        .app-container {
-            max-width: 1400px;
-            margin: env(safe-area-inset-top, 0px) auto 0 auto;
-            background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-            overflow: hidden;
-        }
+   .app-container {
+    max-width: 1400px;
+    margin: env(safe-area-inset-top, 0px) auto 0 auto;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+    overflow: hidden;
+    height: 100vh;  /* 改为视口高度 */
+    display: flex;
+    flex-direction: column;
+}
+
+
 
        .header {
     padding: 12px 0 0 0;     /* 改一下内边距 */
@@ -113,28 +118,34 @@
     height: auto;
 }
 
-      .two-columns {
+
+/* 两列布局容器 */
+.two-columns {
     display: flex;
-    flex-wrap: wrap;
-    align-items: stretch;  /* 让两侧等高 */
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;   /* ← 关键：把滚动限制在左右各自内部 */
 }
 
 .sidebar {
-    flex: 0.5;
-    min-width: 260px;
+    flex: 0.3;
+    min-width: 200px;
     background: #ffffff;
     border-right: 0.5px solid #e5e5ea;
-    padding: 20px 16px 24px 4px;   /* 左边距从 16px 改为 4px，更靠左 */
+    padding: 2px 16px 0 4px;   /* 把 20px 改成 12px，与 .record-card 的顶部对齐 */
     display: flex;
     flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
 }
-
+/* 目录树容器 */
 .chapters-tree {
     flex: 1;
     overflow-y: auto;
     background: transparent;
-    margin-left: -20px;      /* 添加 */
-    padding-left: 0;     /* 添加 */
+    min-height: 0;
+    margin-left: -20px;
+    padding-left: 0;
 }
 
         .main-content {
@@ -145,11 +156,14 @@
         }
 
         .chapters-tree {
-            margin-bottom: 16px;
-            background: transparent;
-            overflow-y: auto;
-             max-height: calc(100vh - 200px);  /* 改为视口高度减去头部和底部 */
-        }
+    flex: 1;
+    overflow-y: auto;
+    background: transparent;
+    min-height: 0;
+    margin-left: -20px;
+    padding-left: 0;
+    padding-bottom: 0;   /* 新增 */
+}
 
         .tree-node {
             user-select: none;
@@ -598,6 +612,7 @@
     body {
         background: #ffffff !important;
         overflow-x: hidden !important;
+         height: 100%;  /* 添加 */
     }
 }
 /* 确保编辑器容器也是左对齐 */
@@ -630,9 +645,9 @@
 
 /* 去除多余的滚动条，让内容全部展开 */
 .main-content {
-    overflow-y: visible !important;
-    overflow-x: visible !important;
-    max-height: none !important;
+    overflow-y: auto !important;    /* 改为 auto，内容超过高度时出现滚动条 */
+    overflow-x: hidden;              /* 水平方向隐藏，防止横向溢出 */
+    max-height: 100% !important;    /* 限制最大高度为父容器100% */
 }
 
 .records-list {
@@ -1527,6 +1542,144 @@ body {
     }
 }
 
+/* 关系导图模态窗样式 - 浅色系 */
+.graph-modal .modal-container {
+    max-width: 800px;
+    background: #ffffff;
+    color: #1c1c1e;
+    overflow: visible !important;
+}
+.graph-container {
+    padding: 20px;
+    min-height: 500px;
+    position: relative;
+    background: #fafafc;
+    border-radius: 0 0 12px 12px;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+}
+
+.graph-modal .modal-body {
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+}
+.graph-node {
+    position: absolute;
+    background: #ffffff;
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 2px solid #61A2DA;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    z-index: 2;
+}
+.graph-node.center {
+    width: 100px;
+    height: 100px;
+    background: #61A2DA;
+    border-color: #ffffff;
+    color: white;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+.graph-node.related {
+    background: #ffffff;
+    border-color: #61A2DA;
+}
+.graph-node.event {
+    background: #fff8e1;
+    border-color: #ffd93d;
+}
+.graph-node:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.graph-node .node-name {
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+    word-break: break-word;
+    padding: 0 4px;
+    color: #1c1c1e;
+}
+.graph-node.center .node-name {
+    color: #ffffff;
+}
+.graph-node .node-type {
+    font-size: 16px;
+    margin-top: 4px;
+}
+.graph-line {
+    position: absolute;
+    background: #c6c6c8;
+    height: 1.5px;
+    transform-origin: 0 0;
+    z-index: 1;
+}
+.graph-legend {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    padding: 12px 16px;
+    border-top: 0.5px solid #e5e5ea;
+    background: #fafafc;
+}
+.graph-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #6c6c70;
+}
+.graph-legend-color {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+}
+.graph-legend-color.center { background: #61A2DA; }
+.graph-legend-color.related { background: #ffffff; border: 1.5px solid #61A2DA; }
+.graph-legend-color.event { background: #fff8e1; border: 1.5px solid #ffd93d; }
+.no-graph-data {
+    text-align: center;
+    padding: 60px;
+    color: #8e8e93;
+}
+.graph-hint {
+    text-align: center;
+    font-size: 12px;
+    color: #8e8e93;
+    padding: 10px;
+    border-top: 0.5px solid #e5e5ea;
+    background: #fafafc;
+}
+/* 移除所有输入框聚焦时的黑框 */
+input:focus, 
+textarea:focus, 
+select:focus,
+#customInputValue:focus,
+.newRootName:focus,
+#newRootName:focus,
+#newTagName:focus,
+#searchInput:focus,
+#timelineInput:focus,
+#birthYear:focus,
+#deathYear:focus,
+.modal-body input:focus,
+.modal-body textarea:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 2px #61A2DA20 !important;
+    border-color: #61A2DA !important;
+}
     </style>
 </head>
 <body>
@@ -1787,6 +1940,27 @@ body {
                 <button id="customInputCancelBtn" class="btn-cancel">取消</button>
                 <button id="customInputConfirmBtn" class="btn-confirm">确定</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- 关系导图模态窗 -->
+<div id="graphModal" class="modal-mask graph-modal">
+    <div class="modal-container" style="max-width: 850px;">
+        <div class="modal-header" style="background: #ffffff; border-bottom: 0.5px solid #e5e5ea; padding: 16px 20px;">
+            <h3 id="graphTitle" style="color: #61A2DA; margin: 0;">关系导图</h3>
+            <button class="close-modal" id="closeGraphBtn" style="color: #8e8e93; font-size: 24px; background: none; border: none; cursor: pointer;">&times;</button>
+        </div>
+        <div class="modal-body" style="padding: 0; background: #fafafc;">
+            <div id="graphContainer" class="graph-container" style="min-height: 500px; position: relative; background: #fafafc;">
+                <div class="no-graph-data">加载中...</div>
+            </div>
+            <div class="graph-legend">
+                <div class="graph-legend-item"><div class="graph-legend-color center"></div><span>中心人物</span></div>
+                <div class="graph-legend-item"><div class="graph-legend-color related"></div><span>相关人物</span></div>
+                <div class="graph-legend-item"><div class="graph-legend-color event"></div><span>相关事件</span></div>
+            </div>
+            <div class="graph-hint">💡 点击节点可跳转到对应页面</div>
         </div>
     </div>
 </div>
@@ -2320,32 +2494,34 @@ function bindLifespanEvents() {
     ],
     
     "shijing": [
-    { id: "sj_feng", name: "国风（160篇）", children: [
-        { id: "sj_zhounan", name: "周南（11篇）", children: [] },
-        { id: "sj_zhaonan", name: "召南（14篇）", children: [] },
-        { id: "sj_beifeng", name: "邶风（19篇）", children: [] },
-        { id: "sj_yongfeng", name: "鄘风（10篇）", children: [] },
-        { id: "sj_weifeng", name: "卫风（10篇）", children: [] },
-        { id: "sj_wangfeng", name: "王风（10篇）", children: [] },
-        { id: "sj_zhengfeng", name: "郑风（21篇）", children: [] },
-        { id: "sj_qifeng", name: "齐风（11篇）", children: [] },
-        { id: "sj_weifeng2", name: "魏风（7篇）", children: [] },
-        { id: "sj_tangfeng", name: "唐风（12篇）", children: [] },
-        { id: "sj_qinfeng", name: "秦风（10篇）", children: [] },
-        { id: "sj_chenfeng", name: "陈风（10篇）", children: [] },
-        { id: "sj_kuaifeng", name: "桧风（4篇）", children: [] },
-        { id: "sj_caofeng", name: "曹风（4篇）", children: [] },
-        { id: "sj_binfeng", name: "豳风（7篇）", children: [] }
+    { id: "sj_feng", name: "国风", children: [
+        { id: "sj_zhounan", name: "周南", children: [] },
+        { id: "sj_zhaonan", name: "召南", children: [] },
+        { id: "sj_beifeng", name: "邶风", children: [] },
+        { id: "sj_yongfeng", name: "鄘风", children: [] },
+        { id: "sj_weifeng", name: "卫风", children: [] },
+        { id: "sj_wangfeng", name: "王风", children: [] },
+        { id: "sj_zhengfeng", name: "郑风", children: [] },
+        { id: "sj_qifeng", name: "齐风", children: [] },
+        { id: "sj_weifeng2", name: "魏风", children: [] },
+        { id: "sj_tangfeng", name: "唐风", children: [] },
+        { id: "sj_qinfeng", name: "秦风", children: [] },
+        { id: "sj_chenfeng", name: "陈风", children: [] },
+        { id: "sj_kuaifeng", name: "桧风", children: [] },
+        { id: "sj_caofeng", name: "曹风", children: [] },
+        { id: "sj_binfeng", name: "豳风", children: [] }
     ] },
-    { id: "sj_xiaoya", name: "小雅（74篇）", children: [] },
-    { id: "sj_daya", name: "大雅（31篇）", children: [] },
-    { id: "sj_song", name: "颂（40篇）", children: [
-        { id: "sj_zhousong", name: "周颂（31篇）", children: [] },
-        { id: "sj_lusong", name: "鲁颂（4篇）", children: [] },
-        { id: "sj_shangsong", name: "商颂（5篇）", children: [] }
+    { id: "sj_xiaoya", name: "小雅", children: [] },
+    { id: "sj_daya", name: "大雅", children: [] },
+    { id: "sj_song", name: "颂", children: [
+        { id: "sj_zhousong", name: "周颂", children: [] },
+        { id: "sj_lusong", name: "鲁颂", children: [] },
+        { id: "sj_shangsong", name: "商颂", children: [] }
     ] }
 ],
-    "tangshi": [
+
+
+"tangshi": [
         { id: "ts1", name: "李白", children: [] },
         { id: "ts2", name: "杜甫", children: [] },
         { id: "ts3", name: "王维", children: [] },
@@ -2426,7 +2602,8 @@ function setButtonLoading(btn, isLoading) {
     let currentRelatedPersons = [];
     let currentTimeline = [];
     let currentRelatedEvents = [];
-    
+        let isSyncing = false;
+    let lastSyncTime = 0;
     function getCurrentTree() { return trees[currentClassic] || []; }
     function genId() { return Date.now() + '-' + Math.random().toString(36).substr(2, 6); }
     function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
@@ -2507,17 +2684,22 @@ function migrateOldNotes() {
     }
 }
 
-
-    function getAllLeafNodes(tree, path = []) {
-        let leaves = [];
-        for (let node of tree) {
-            if (node.children?.length) leaves.push(...getAllLeafNodes(node.children, [...path, node.name]));
-            else leaves.push({ id: node.id, name: node.name, fullPath: [...path, node.name].join(' / ') });
+function getAllLeafNodes(tree, path = []) {
+    let leaves = [];
+    for (let node of tree) {
+        if (node.children?.length) {
+            leaves.push(...getAllLeafNodes(node.children, [...path, node.name]));
+        } else {
+            leaves.push({ 
+                id: node.id, 
+                name: node.name, 
+                cleanName: node.name.replace(/^《|》$/g, ''),
+                fullPath: [...path, node.name].join(' · ')  // 完整路径包含自己
+            });
         }
-        return leaves;
     }
-    
-
+    return leaves;
+}
 function getPersonNote(personName, autoCreate = true) {
     let note = notes.find(n => n.classic === currentClassic && n.chapter === personName);
     if (!note && autoCreate) {
@@ -3002,6 +3184,7 @@ function closeModal(id) {
     if(quillContent) quillContent.root.innerHTML = ''; 
 }
     
+
 function renderRecords() {
     const container = document.getElementById('recordsContainer');
     let currentNote = notes.find(n => n.classic === currentClassic && n.chapter === currentChapter);
@@ -3024,6 +3207,25 @@ function renderRecords() {
         return;
     }
     
+    // 检查当前笔记是否有双链关联（决定是否显示导图按钮）
+    function hasGraphData(note) {
+        if (!note) return false;
+        const isClassicMode = ['lunyu', 'shijing', 'tangshi', 'songci'].includes(currentClassic);
+        
+        if (isClassicMode) {
+            const allContent = (note.original || '') + (note.notes || '') + (note.supplement || '') + (note.translation || '');
+            return /\[\[([^\]]+)\]\]/.test(allContent);
+        } else {
+            const hasRelatedPersons = note.relatedPersons && note.relatedPersons.length > 0;
+            const hasRelatedEvents = note.relatedEvents && note.relatedEvents.length > 0;
+            const hasTimeline = note.timeline && note.timeline.length > 0;
+            const hasWikilinkInContent = note.content && /\[\[([^\]]+)\]\]/.test(note.content);
+            return hasRelatedPersons || hasRelatedEvents || hasTimeline || hasWikilinkInContent;
+        }
+    }
+    
+    const showGraphBtn = hasGraphData(currentNote);
+    
     let contentHtml = '<div class="record-card" style="margin: 0;">';
     
     // 实时检查返回栈是否有记录（每次渲染都重新获取）
@@ -3039,7 +3241,15 @@ function renderRecords() {
                 <path d="M6 14.364L28.6722 14.364C35.557 14.364 41.2122 19.8028 41.4805 26.6824V26.6824C41.7641 33.952 35.9474 40 28.6722 40H12" stroke="#61A2DA" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
         </button>` : ''}
-        <span class="record-title" id="editableChapterTitle" style="cursor: pointer;" title="双击编辑目录名称">${escapeHtml(currentNote.chapter)}</span>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="record-title" id="editableChapterTitle" style="cursor: pointer;" title="双击编辑目录名称">${escapeHtml(currentNote.chapter)}</span>
+            ${showGraphBtn ? `<button id="graphBtn" class="graph-btn" style="background: none; border: none; cursor: pointer; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s;" title="查看关系导图">
+                <svg width="16" height="16" viewBox="0 0 512 512" fill="none" stroke="#61A2DA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M415.313,358.7c36.453-36.452,55.906-85.231,54.779-137.353-1.112-51.375-21.964-99.908-58.715-136.66L388.75,107.314A166.816,166.816,0,0,1,438.1,222.039c.937,43.313-15.191,83.81-45.463,114.083l-48.617,49.051.044-89.165-32-.016L311.992,440H456.063V408H366.449Z" fill="#61A2DA"/>
+                    <path d="M47.937,112h89.614L88.687,161.3c-36.453,36.451-55.906,85.231-54.779,137.352a198.676,198.676,0,0,0,58.715,136.66l22.627-22.627A166.818,166.818,0,0,1,65.9,297.962c-.937-43.314,15.191-83.811,45.463-114.083l48.617-49.051-.044,89.165,32,.015L192.008,80H47.937Z" fill="#61A2DA"/>
+                </svg>
+            </button>` : ''}
+        </div>
         ${!isClassic && currentNote.lifespan ? `<span style="margin-left: 12px; font-size: 13px; color: #8e8e93; font-family: monospace; background: #f2f2f6; padding: 4px 10px; border-radius: 20px;">${escapeHtml(currentNote.lifespan)}</span>` : ''}
     </div>
     <div class="record-header-right">
@@ -3152,16 +3362,38 @@ function renderRecords() {
             });
         }
         
-        if (relatedPersonsMap.size > 0) {
-            let relatedHtml = '<div style="margin: 16px 0 8px 0; padding-top: 12px; border-top: 1px solid #e5e5ea;"><div style="font-size: 13px; font-weight: 500; color: #8e8e93; margin-bottom: 10px;">相关人物</div><div style="display: flex; flex-wrap: wrap; gap: 8px;">';
-            for (const [personName] of relatedPersonsMap) {
-                relatedHtml += `<span class="related-person-tag" data-person="${escapeHtml(personName)}" style="display:inline-flex; background:#e9e9ef; padding:6px 14px; border-radius:20px; font-size:13px; color:#61A2DA; cursor:pointer; transition:all 0.2s;">${escapeHtml(personName)}</span>`;
-            }
-            relatedHtml += '</div></div>';
-            contentHtml += relatedHtml;
+ 
+// 显示相关人物模块（经典文献模式）
+if (relatedPersonsMap.size > 0) {
+    let relatedHtml = '<div style="margin: 16px 0 8px 0; padding-top: 12px; border-top: 1px solid #e5e5ea;"><div style="font-size: 13px; font-weight: 500; color: #8e8e93; margin-bottom: 10px;">相关人物</div><div style="display: flex; flex-wrap: wrap; gap: 8px;">';
+    for (const [personName] of relatedPersonsMap) {
+    let fullPath = '';
+    for (const [classicKey, tree] of Object.entries(trees)) {
+        const leaves = getAllLeafNodes(tree);
+        // 匹配时忽略书名号
+        const found = leaves.find(l => 
+            l.name === personName || 
+            l.cleanName === personName ||
+            l.name.replace(/^《|》$/g, '') === personName
+        );
+        if (found) {
+            fullPath = found.fullPath;
+            break;
         }
+    }
 
-        if (!hasOriginal && !hasNotes && !hasSupplement && !hasTranslation) {
+        const finalDisplay = fullPath ? fullPath : personName;
+        relatedHtml += `<span class="related-person-tag" data-person="${escapeHtml(personName)}" style="display:inline-flex; background:#e9e9ef; padding:6px 14px; border-radius:20px; font-size:13px; color:#61A2DA; cursor:pointer; transition:all 0.2s;">${escapeHtml(finalDisplay)}</span>`;
+    }
+  
+  
+  
+    relatedHtml += '</div></div>';
+    contentHtml += relatedHtml;
+}
+
+
+if (!hasOriginal && !hasNotes && !hasSupplement && !hasTranslation) {
             contentHtml += `<div style="color: #aeaeb2; padding: 40px 20px; text-align: center;">📝 暂无内容，双击上方空白处添加</div>`;
         }
     } else {
@@ -3238,12 +3470,49 @@ function renderRecords() {
             }
         }
         
-        if (relatedPersonsMap.size > 0) {
-            let relatedHtml = '<div style="margin: 16px 0 8px 0; padding-top: 12px; border-top: 1px solid #e5e5ea;"><div style="font-size: 13px; font-weight: 500; color: #8e8e93; margin-bottom: 10px;">相关人物</div><div style="display: flex; flex-wrap: wrap; gap: 8px;">';
-            for (const [personName, relation] of relatedPersonsMap) {
-                const displayText = relation ? `${relation} ${personName}` : personName;
-                relatedHtml += `<span class="related-person-tag" data-person="${escapeHtml(personName)}" style="display:inline-flex; background:#e9e9ef; padding:6px 14px; border-radius:20px; font-size:13px; color:#61A2DA; cursor:pointer; transition:all 0.2s;">${escapeHtml(displayText)}</span>`;
+        // 显示相关人物与事件模块
+        const hasAnyRelation = relatedPersonsMap.size > 0 || (currentNote.relatedEvents && currentNote.relatedEvents.length > 0);
+
+        if (hasAnyRelation) {
+            let relatedHtml = '<div style="margin: 16px 0 8px 0; padding-top: 12px; border-top: 1px solid #e5e5ea;"><div style="font-size: 13px; font-weight: 500; color: #8e8e93; margin-bottom: 10px;">📎 相关人物与事件</div><div style="display: flex; flex-wrap: wrap; gap: 8px;">';
+            
+        // 显示相关人物（带完整目录路径）
+for (const [personName, relation] of relatedPersonsMap) {
+    let fullPath = '';
+    for (const [classicKey, tree] of Object.entries(trees)) {
+        const leaves = getAllLeafNodes(tree);
+        const found = leaves.find(l => 
+    l.name === personName || 
+    l.cleanName === personName ||
+    l.name.replace(/^《|》$/g, '') === personName
+);
+        if (found) {
+            fullPath = found.fullPath;
+            break;
+        }
+    }
+    const displayText = relation ? `${relation} ` : '';
+    const finalDisplay = fullPath ? `${fullPath}` : `${displayText}${personName}`;
+    relatedHtml += `<span class="related-person-tag" data-person="${escapeHtml(personName)}" style="display:inline-flex; background:#e9e9ef; padding:6px 14px; border-radius:20px; font-size:13px; color:#61A2DA; cursor:pointer; transition:all 0.2s;">${escapeHtml(finalDisplay)}</span>`;
+}
+   
+
+// 显示相关事件（带完整目录路径）
+if (currentNote.relatedEvents && currentNote.relatedEvents.length > 0) {
+    currentNote.relatedEvents.forEach(event => {
+        let fullPath = '';
+        for (const [classicKey, tree] of Object.entries(trees)) {
+            const leaves = getAllLeafNodes(tree);
+            const found = leaves.find(l => l.name === event);
+            if (found) {
+                fullPath = found.fullPath;
+                break;
             }
+        }
+        const finalDisplay = fullPath ? fullPath : event;
+        relatedHtml += `<span class="related-event-tag" data-event="${escapeHtml(event)}" style="display:inline-flex; background:#e9e9ef; padding:6px 14px; border-radius:20px; font-size:13px; color:#e67e22; cursor:pointer; transition:all 0.2s;">${escapeHtml(finalDisplay)}</span>`;
+    });
+}
             relatedHtml += '</div></div>';
             contentHtml += relatedHtml;
         }
@@ -3417,7 +3686,7 @@ function renderRecords() {
         };
     }
     
-    // 相关人物标签点击跳转 - 使用栈
+    // 相关人物标签点击跳转 - 忽略书名号匹配
     setTimeout(() => {
         document.querySelectorAll('.related-person-tag').forEach(el => {
             if (el._clickHandler) {
@@ -3425,8 +3694,10 @@ function renderRecords() {
             }
             const handler = (e) => {
                 e.stopPropagation();
-                const personName = el.dataset.person;
+                let personName = el.dataset.person;
                 if (personName) {
+                    const cleanLinkName = personName.replace(/^[《「『]|[》」』]$/g, '');
+                    
                     let returnStack = localStorage.getItem('return_stack');
                     let stack = returnStack ? JSON.parse(returnStack) : [];
                     stack.push({
@@ -3439,22 +3710,26 @@ function renderRecords() {
                     let found = false;
                     for (const [classicKey, tree] of Object.entries(trees)) {
                         const leaves = getAllLeafNodes(tree);
-                        const exists = leaves.find(l => l.name === personName);
+                        const exists = leaves.find(l => 
+                            l.name === personName || 
+                            l.cleanName === cleanLinkName ||
+                            l.name.replace(/^《|》$/g, '') === cleanLinkName
+                        );
                         if (exists) {
                             if (classicKey !== currentClassic) {
                                 switchClassic(classicKey);
                             }
-                            currentChapter = personName;
+                            currentChapter = exists.name;
                             saveCurrent();
                             renderTree();
                             renderRecords();
-                            showMsg(`跳转到: ${personName}`);
+                            showMsg(`跳转到: ${exists.name}`);
                             found = true;
                             break;
                         }
                     }
                     if (!found) {
-                        showMsg(`❌ 人物"${personName}"暂未创建，请先在目录中添加`);
+                        showMsg(`❌ "${personName}" 暂未创建，请先在目录中添加`);
                     }
                 }
             };
@@ -3462,8 +3737,8 @@ function renderRecords() {
             el.addEventListener('click', handler);
         });
     }, 100);
-
-    // 双链点击跳转 - 使用栈
+    
+    // 双链点击跳转 - 使用栈（忽略书名号匹配）
     setTimeout(() => {
         document.querySelectorAll('.wikilink-text').forEach(el => {
             if (el._clickHandler) {
@@ -3471,8 +3746,10 @@ function renderRecords() {
             }
             const handler = (e) => {
                 e.stopPropagation();
-                const personName = el.dataset.person;
+                let personName = el.dataset.person;
                 if (personName) {
+                    const cleanLinkName = personName.replace(/^[《「『]|[》」』]$/g, '');
+                    
                     let returnStack = localStorage.getItem('return_stack');
                     let stack = returnStack ? JSON.parse(returnStack) : [];
                     stack.push({
@@ -3485,22 +3762,26 @@ function renderRecords() {
                     let found = false;
                     for (const [classicKey, tree] of Object.entries(trees)) {
                         const leaves = getAllLeafNodes(tree);
-                        const exists = leaves.find(l => l.name === personName);
+                        const exists = leaves.find(l => 
+                            l.name === personName || 
+                            l.cleanName === cleanLinkName ||
+                            l.name.replace(/^《|》$/g, '') === cleanLinkName
+                        );
                         if (exists) {
                             if (classicKey !== currentClassic) {
                                 switchClassic(classicKey);
                             }
-                            currentChapter = personName;
+                            currentChapter = exists.name;
                             saveCurrent();
                             renderTree();
                             renderRecords();
-                            showMsg(`🔗 跳转到: ${personName}`);
+                            showMsg(`🔗 跳转到: ${exists.name}`);
                             found = true;
                             break;
                         }
                     }
                     if (!found) {
-                        showMsg(`❌ 人物"${personName}"暂未创建，请先在目录中添加`);
+                        showMsg(`❌ "${personName}" 暂未创建，请先在目录中添加`);
                     }
                 }
             };
@@ -3508,7 +3789,7 @@ function renderRecords() {
             el.addEventListener('click', handler);
         });
     }, 100);
-
+    
     if (!isClassic) {
         document.querySelectorAll('.timeline-node').forEach(node => {
             node.addEventListener('click', (e) => {
@@ -3532,39 +3813,281 @@ function renderRecords() {
     }
 
     // 返回按钮 - 使用栈
-    setTimeout(() => {
-        const backBtn = document.getElementById('backToPrevBtn');
-        if (backBtn) {
-            if (backBtn._clickHandler) {
-                backBtn.removeEventListener('click', backBtn._clickHandler);
-            }
-            const handler = (e) => {
-                e.stopPropagation();
-                let returnStack = localStorage.getItem('return_stack');
-                let stack = returnStack ? JSON.parse(returnStack) : [];
-                
-                if (stack.length > 0) {
-                    const previous = stack.pop();
-                    localStorage.setItem('return_stack', JSON.stringify(stack));
-                    
-                    if (previous.classic !== currentClassic) {
-                        switchClassic(previous.classic);
-                    }
-                    currentChapter = previous.chapter;
-                    saveCurrent();
-                    renderTree();
-                    renderRecords();
-                    showMsg(`↩️ 返回: ${previous.chapter}`);
-                } else {
-                    showMsg('⚠️ 没有可返回的上一页');
-                }
-            };
-            backBtn._clickHandler = handler;
-            backBtn.addEventListener('click', handler);
+    // 返回按钮 - 使用栈
+setTimeout(() => {
+    const backBtn = document.getElementById('backToPrevBtn');
+    if (backBtn) {
+        if (backBtn._clickHandler) {
+            backBtn.removeEventListener('click', backBtn._clickHandler);
         }
-    }, 100);
+        const handler = (e) => {
+            e.stopPropagation();
+            let returnStack = localStorage.getItem('return_stack');
+            let stack = returnStack ? JSON.parse(returnStack) : [];
+            
+            if (stack.length > 0) {
+                const previous = stack.pop();
+                localStorage.setItem('return_stack', JSON.stringify(stack));
+                
+                if (previous.classic !== currentClassic) {
+                    switchClassic(previous.classic);
+                }
+                currentChapter = previous.chapter;
+                saveCurrent();
+                renderTree();
+                renderRecords();
+                showMsg(`↩️ 返回: ${previous.chapter}`);
+            } else {
+                showMsg('⚠️ 没有可返回的上一页');
+            }
+        };
+        backBtn._clickHandler = handler;
+        backBtn.addEventListener('click', handler);
+    }
+}, 100);
+    // 绑定导图按钮
+    bindGraphButton();
 }
 
+
+function showGraph() {
+    const currentNote = notes.find(n => n.classic === currentClassic && n.chapter === currentChapter);
+    if (!currentNote) {
+        showMsg('暂无笔记数据');
+        return;
+    }
+    
+    const isClassic = ['lunyu', 'shijing', 'tangshi', 'songci'].includes(currentClassic);
+    const nodes = [];
+    const edges = [];
+    
+    // 中心节点
+    nodes.push({
+        id: 'center',
+        name: currentChapter,
+        type: 'center',
+        relation: ''
+    });
+    
+    const relatedPersonsSet = new Set();
+    const relatedEventsSet = new Set();
+    
+    if (isClassic) {
+        // 经典文献模式：从所有字段提取双链
+        const allContent = (currentNote.original || '') + (currentNote.notes || '') + (currentNote.supplement || '') + (currentNote.translation || '');
+        if (allContent) {
+            const linkRegex = /\[\[([^\]]+)\]\]/g;
+            let match;
+            while ((match = linkRegex.exec(allContent)) !== null) {
+                let linkText = match[1];
+                let personName = linkText;
+                const relationMatch = linkText.match(/^(.+?)[\s：:](.+)$/);
+                let relation = '';
+                if (relationMatch) {
+                    relation = relationMatch[1];
+                    personName = relationMatch[2];
+                }
+                if (personName && personName.trim()) {
+                    relatedPersonsSet.add({ name: personName.trim(), relation: relation });
+                }
+            }
+        }
+    } else {
+        // 历史人物模式
+        if (currentNote.relatedPersons && currentNote.relatedPersons.length > 0) {
+            currentNote.relatedPersons.forEach(item => {
+                const name = typeof item === 'string' ? item : item.name;
+                const relation = typeof item === 'string' ? '' : item.relation;
+                relatedPersonsSet.add({ name: name, relation: relation });
+            });
+        }
+        
+        if (currentNote.content) {
+            const linkRegex = /\[\[([^\]]+)\]\]/g;
+            let match;
+            while ((match = linkRegex.exec(currentNote.content)) !== null) {
+                let linkText = match[1];
+                let personName = linkText;
+                const relationMatch = linkText.match(/^(.+?)[\s：:](.+)$/);
+                let relation = '';
+                if (relationMatch) {
+                    relation = relationMatch[1];
+                    personName = relationMatch[2];
+                }
+                if (personName && personName.trim()) {
+                    relatedPersonsSet.add({ name: personName.trim(), relation: relation });
+                }
+            }
+        }
+        
+        if (currentNote.relatedEvents && currentNote.relatedEvents.length > 0) {
+            currentNote.relatedEvents.forEach(event => {
+                relatedEventsSet.add(event);
+            });
+        }
+        
+        if (currentNote.timeline && currentNote.timeline.length > 0) {
+            currentNote.timeline.forEach(person => {
+                relatedPersonsSet.add({ name: person, relation: '时代相关' });
+            });
+        }
+    }
+    
+    // 添加相关人物节点
+    let index = 1;
+    for (const person of relatedPersonsSet) {
+        nodes.push({
+            id: `p${index}`,
+            name: person.name,
+            type: 'related',
+            relation: person.relation || '相关'
+        });
+        edges.push({ from: 'center', to: `p${index}`, label: person.relation || '相关' });
+        index++;
+    }
+    
+    // 添加相关事件节点
+    for (const event of relatedEventsSet) {
+        nodes.push({
+            id: `e${index}`,
+            name: typeof event === 'string' ? event : event.name,
+            type: 'event',
+            relation: '事件'
+        });
+        edges.push({ from: 'center', to: `e${index}`, label: '事件' });
+        index++;
+    }
+    
+    if (nodes.length <= 1) {
+        document.getElementById('graphContainer').innerHTML = '<div class="no-graph-data">📭 暂无关联的人物或事件<br>💡 在正文中使用 [[关系 人名]] 添加双链</div>';
+        document.getElementById('graphModal').classList.add('active');
+        return;
+    }
+    
+    renderGraphVisualization(nodes, edges, currentChapter);
+    document.getElementById('graphModal').classList.add('active');
+}
+
+// 渲染可视化导图（力导向布局）
+// 渲染可视化导图（力导向布局）
+function renderGraphVisualization(nodes, edges, centerName) {
+    const container = document.getElementById('graphContainer');
+    container.innerHTML = '';
+    container.style.position = 'relative';
+    container.style.minHeight = '500px';
+    
+    const width = container.clientWidth || 750;
+    const height = 500;
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const radius = Math.min(width, height) * 0.32;
+    
+    // 计算节点位置（圆形布局）
+    const relatedNodes = nodes.filter(n => n.type !== 'center');
+    const angleStep = (Math.PI * 2) / Math.max(relatedNodes.length, 1);
+    
+    // 存储位置（存储节点的中心点坐标）
+    const positions = {};
+    positions['center'] = { x: centerX, y: centerY };
+    
+    relatedNodes.forEach((node, i) => {
+        const angle = i * angleStep - Math.PI / 2;
+        const x = centerX + radius * Math.cos(angle);
+        const y = centerY + radius * Math.sin(angle);
+        positions[node.id] = { x, y };
+    });
+    
+    // 先绘制连线（放在节点下面）
+    edges.forEach(edge => {
+        const fromPos = positions[edge.from];
+        const toPos = positions[edge.to];
+        if (fromPos && toPos) {
+            const line = document.createElement('div');
+            line.className = 'graph-line';
+            
+            // 计算两个中心点之间的向量
+            const dx = toPos.x - fromPos.x;
+            const dy = toPos.y - fromPos.y;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+            
+            // 设置连线位置（从起点中心开始）
+            line.style.position = 'absolute';
+            line.style.left = `${fromPos.x}px`;
+            line.style.top = `${fromPos.y}px`;
+            line.style.width = `${length}px`;
+            line.style.height = '2px';
+            line.style.backgroundColor = '#c6c6c8';
+            line.style.transformOrigin = '0 0';
+            line.style.transform = `rotate(${angle}deg)`;
+            line.style.borderRadius = '1px';
+            
+            container.appendChild(line);
+        }
+    });
+    
+    // 再绘制节点（放在连线上方）
+    nodes.forEach(node => {
+        const pos = positions[node.id];
+        if (!pos) return;
+        
+        const div = document.createElement('div');
+        div.className = `graph-node ${node.type}`;
+        // 注意：因为节点使用 transform: translate(-50%, -50%) 居中
+        // 所以设置 left/top 为节点中心点坐标
+        div.style.position = 'absolute';
+        div.style.left = `${pos.x}px`;
+        div.style.top = `${pos.y}px`;
+        div.style.transform = 'translate(-50%, -50%)';
+        
+        div.innerHTML = `
+            <div class="node-name">${escapeHtml(node.name.length > 12 ? node.name.slice(0, 12) + '...' : node.name)}</div>
+            <div class="node-type">${node.type === 'event' ? '📌' : ''}</div>
+        `;
+        
+        div.addEventListener('click', () => {
+            if (node.type !== 'center') {
+                closeModal('graphModal');
+                let found = false;
+                for (const [classicKey, tree] of Object.entries(trees)) {
+                    const leaves = getAllLeafNodes(tree);
+                    const exists = leaves.find(l => l.name === node.name);
+                    if (exists) {
+                        if (classicKey !== currentClassic) {
+                            switchClassic(classicKey);
+                        }
+                        currentChapter = node.name;
+                        saveCurrent();
+                        renderTree();
+                        renderRecords();
+                        showMsg(`🔗 跳转到: ${node.name}`);
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    showMsg(`❌ "${node.name}" 暂未创建`);
+                }
+            }
+        });
+        
+        container.appendChild(div);
+    });
+    
+    document.getElementById('graphTitle').innerHTML = `${escapeHtml(centerName)} 的关系导图`;
+}
+// 绑定导图按钮事件
+function bindGraphButton() {
+    const graphBtn = document.getElementById('graphBtn');
+    if (graphBtn) {
+        if (graphBtn._clickHandler) {
+            graphBtn.removeEventListener('click', graphBtn._clickHandler);
+        }
+        const handler = () => showGraph();
+        graphBtn._clickHandler = handler;
+        graphBtn.addEventListener('click', handler);
+    }
+}
 function saveNote() {
     const now = new Date().toISOString();
     const isClassic = ['lunyu', 'shijing', 'tangshi', 'songci'].includes(currentClassic);
@@ -3575,26 +4098,20 @@ function saveNote() {
     console.log('是否为经典文献:', isClassic);
     
     if (isClassic) {
-        // 经典文献模式：直接从 DOM 获取编辑器内容
+        // ========== 经典文献模式 ==========
         let originalContent = '';
         let notesContent = '';
         let supplementContent = '';
         let translationContent = '';
         
-        // 获取原文内容
         if (window.quillOriginal && window.quillOriginal.root) {
             originalContent = window.quillOriginal.root.innerHTML;
-            console.log('通过 quillOriginal 获取原文:', originalContent);
         }
         if (!originalContent || originalContent === '<p><br></p>') {
             const originalEl = document.querySelector('#editorOriginal .ql-editor');
-            if (originalEl) {
-                originalContent = originalEl.innerHTML;
-                console.log('通过 DOM 获取原文:', originalContent);
-            }
+            if (originalEl) originalContent = originalEl.innerHTML;
         }
         
-        // 获取注释内容
         if (window.quillNotes && window.quillNotes.root) {
             notesContent = window.quillNotes.root.innerHTML;
         }
@@ -3603,7 +4120,6 @@ function saveNote() {
             if (notesEl) notesContent = notesEl.innerHTML;
         }
         
-        // 获取补充内容
         if (window.quillSupplement && window.quillSupplement.root) {
             supplementContent = window.quillSupplement.root.innerHTML;
         }
@@ -3612,7 +4128,6 @@ function saveNote() {
             if (supplementEl) supplementContent = supplementEl.innerHTML;
         }
         
-        // 获取译文内容
         if (window.quillTranslation && window.quillTranslation.root) {
             translationContent = window.quillTranslation.root.innerHTML;
         }
@@ -3633,27 +4148,23 @@ function saveNote() {
             updatedAt: now
         };
         
-        console.log('保存的笔记数据:', noteData);
+        processBidirectionalLinksForClassic(noteData);
         
         if (editingId) {
             const idx = notes.findIndex(n => n.id === editingId);
-            if (idx !== -1) {
-                notes[idx] = noteData;
-                console.log('更新已有笔记，索引:', idx);
-            } else {
-                console.warn('未找到要更新的笔记，添加为新笔记');
-                notes.push(noteData);
-            }
+            if (idx !== -1) notes[idx] = noteData;
+            else notes.push(noteData);
         } else {
             notes.push(noteData);
-            console.log('添加新笔记');
         }
     } else {
-        // 历史人物模式
+        // ========== 历史人物模式（庄姜等） ==========
+        // 获取生卒年
         const birthVal = document.getElementById('birthYear')?.value.trim() || '';
         const deathVal = document.getElementById('deathYear')?.value.trim() || '';
         let lifespan = (birthVal || deathVal) ? `${birthVal || '?'} - ${deathVal || '?'}` : '';
         
+        // 获取正文内容
         let contentValue = '';
         if (window.quillContent && window.quillContent.root) {
             contentValue = window.quillContent.root.innerHTML;
@@ -3676,11 +4187,9 @@ function saveNote() {
             updatedAt: now
         };
         
-
-   // 调用双向链接处理（函数定义在外面，不要在 saveNote 内部定义）
+        // 处理双向链接
         processBidirectionalLinks(noteData);
         
-        // 保存笔记（只保留这一份，删除重复的）
         if (editingId) {
             const idx = notes.findIndex(n => n.id === editingId);
             if (idx !== -1) notes[idx] = noteData;
@@ -3689,19 +4198,18 @@ function saveNote() {
             notes.push(noteData);
         }
     }
-
+    
     saveNotes();
     console.log('笔记已保存到 localStorage');
-    console.log('当前所有笔记:', notes);
-    
+    console.log('当前所有笔记数量:', notes.length);
+    autoSyncToGist();
     renderRecords();
     closeModal('noteModal');
+    
     showMsg('笔记已保存 ✓');
 }
 
-
-// ========== 双向链接处理函数 ==========
-   // ========== 双向链接处理函数（保存到对方的 relatedPersons） ==========
+// 处理历史人物模式的双向链接
 function processBidirectionalLinks(currentNoteData) {
     const isClassicMode = ['lunyu', 'shijing', 'tangshi', 'songci'].includes(currentClassic);
     if (isClassicMode) return;
@@ -3717,7 +4225,6 @@ function processBidirectionalLinks(currentNoteData) {
         let relation = '';
         let personName = linkText;
         
-        // 提取关系和姓名
         const relationMatch = linkText.match(/^(.+?)[\s：:]+(.+)$/);
         if (relationMatch) {
             relation = relationMatch[1];
@@ -3732,7 +4239,7 @@ function processBidirectionalLinks(currentNoteData) {
         }
     }
     
-    // 关系映射表（用于反向关系）
+    // 关系映射表
     const relationMap = {
         '朋友': '朋友', '老师': '学生', '学生': '老师',
         '父亲': '儿子', '儿子': '父亲', '母亲': '儿子',
@@ -3741,14 +4248,146 @@ function processBidirectionalLinks(currentNoteData) {
     
     // 为每个链接的人物添加反向关系
     for (const link of links) {
-        let targetNote = notes.find(n => n.classic === currentClassic && n.chapter === link.personName);
+        let targetNote = null;
+        let targetClassic = null;
+        let targetChapterName = link.personName;
+        
+        for (const [classicKey, tree] of Object.entries(trees)) {
+            const leaves = getAllLeafNodes(tree);
+            const exists = leaves.find(l => {
+                if (l.name === link.personName) return true;
+                if (l.cleanName === link.personName) return true;
+                const cleanTarget = l.name.replace(/^《|》$/g, '');
+                const cleanLink = link.personName.replace(/^《|》$/g, '');
+                if (cleanTarget === cleanLink) return true;
+                return false;
+            });
+            
+            if (exists) {
+                targetChapterName = exists.name;
+                targetNote = notes.find(n => n.classic === classicKey && n.chapter === targetChapterName);
+                targetClassic = classicKey;
+                break;
+            }
+        }
         
         if (!targetNote) {
-            // 如果对方笔记不存在，创建一个空笔记
             targetNote = {
                 id: Date.now() + Math.random(),
                 classic: currentClassic,
-                chapter: link.personName,
+                chapter: targetChapterName,
+                lifespan: '',
+                content: '',
+                relatedPersons: [],
+                timeline: [],
+                relatedEvents: [],
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            notes.push(targetNote);
+        }
+        
+        if (!targetNote.relatedPersons) targetNote.relatedPersons = [];
+        
+        let reverseRelation = relationMap[link.relation] || link.relation;
+        if (!reverseRelation) reverseRelation = '相关';
+        
+        const alreadyExists = targetNote.relatedPersons.some(p => {
+            const pName = typeof p === 'string' ? p : p.name;
+            return pName === currentNoteData.chapter;
+        });
+        
+        if (!alreadyExists) {
+            targetNote.relatedPersons.push({
+                name: currentNoteData.chapter,
+                relation: reverseRelation
+            });
+            targetNote.updatedAt = new Date().toISOString();
+        }
+    }
+    
+    saveNotes();
+}
+
+// 处理经典文献模式的双向链接
+function processBidirectionalLinksForClassic(currentNoteData) {
+    // 合并所有字段内容
+    const allContent = (currentNoteData.original || '') + 
+                       (currentNoteData.notes || '') + 
+                       (currentNoteData.supplement || '') + 
+                       (currentNoteData.translation || '');
+    
+    const linkRegex = /\[\[([^\]]+)\]\]/g;
+    let match;
+    const links = [];
+    
+    // 提取当前笔记中的所有双链
+    while ((match = linkRegex.exec(allContent)) !== null) {
+        let linkText = match[1];
+        let relation = '';
+        let personName = linkText;
+        
+        const relationMatch = linkText.match(/^(.+?)[\s：:]+(.+)$/);
+        if (relationMatch) {
+            relation = relationMatch[1];
+            personName = relationMatch[2];
+        }
+        
+        if (personName && personName.trim()) {
+            links.push({
+                personName: personName.trim(),
+                relation: relation.trim()
+            });
+        }
+    }
+    
+    // 关系映射表
+    const relationMap = {
+        '朋友': '朋友', '老师': '学生', '学生': '老师',
+        '父亲': '儿子', '儿子': '父亲', '母亲': '儿子',
+        '哥哥': '弟弟', '弟弟': '哥哥', '师傅': '徒弟', '徒弟': '师傅',
+        '作者': '作品', '作品': '作者',
+        '引用': '被引用', '出自': '出自'
+    };
+    
+    // 为每个链接的人物添加反向关系
+    for (const link of links) {
+        // 在所有分类中查找目标人物
+        let targetNote = null;
+        let targetClassic = null;
+        let targetChapterName = link.personName;
+        
+        for (const [classicKey, tree] of Object.entries(trees)) {
+            const leaves = getAllLeafNodes(tree);
+            // 多种匹配方式：精确匹配、忽略书名号匹配
+            const exists = leaves.find(l => {
+                // 直接匹配名称
+                if (l.name === link.personName) return true;
+                // 清理后匹配（去掉当前节点的书名号）
+                if (l.cleanName === link.personName) return true;
+                // 都去掉书名号后匹配
+                const cleanTarget = l.name.replace(/^《|》$/g, '');
+                const cleanLink = link.personName.replace(/^《|》$/g, '');
+                if (cleanTarget === cleanLink) return true;
+                return false;
+            });
+            
+            if (exists) {
+                targetChapterName = exists.name;
+                targetNote = notes.find(n => n.classic === classicKey && n.chapter === targetChapterName);
+                targetClassic = classicKey;
+                break;
+            }
+        }
+        
+        if (!targetNote) {
+            // 如果对方笔记不存在，在找到的分类中创建一个空笔记
+            const targetClassicKey = targetClassic || currentClassic;
+            
+            targetNote = {
+                id: Date.now() + Math.random(),
+                classic: targetClassicKey,
+                chapter: targetChapterName,
                 lifespan: '',
                 content: '',
                 relatedPersons: [],
@@ -3765,6 +4404,7 @@ function processBidirectionalLinks(currentNoteData) {
         
         // 计算反向关系
         let reverseRelation = relationMap[link.relation] || link.relation;
+        if (!reverseRelation) reverseRelation = '相关';
         
         // 检查是否已经存在该反向关系
         const alreadyExists = targetNote.relatedPersons.some(p => {
@@ -3775,18 +4415,15 @@ function processBidirectionalLinks(currentNoteData) {
         if (!alreadyExists) {
             targetNote.relatedPersons.push({
                 name: currentNoteData.chapter,
-                relation: reverseRelation
+                relation: reverseRelation,
+                sourceClassic: currentClassic
             });
             targetNote.updatedAt = new Date().toISOString();
         }
     }
-}
-  
-
-
-
-  
     
+    saveNotes();
+}
 
 
 // 辅助渲染函数
@@ -4474,23 +5111,23 @@ function renderModalForm() {
         // 经典文献模式：原文、注释、补充、译文
         modalBody.innerHTML = `
             <div class="field-group">
-                <div class="field-label">📖 原文</div>
+                <div class="field-label">原文</div>
                 <div id="editorOriginal" class="quill-editor" style="height: 180px;"></div>
             </div>
             <div class="field-group">
-                <div class="field-label">📝 注释</div>
+                <div class="field-label">注释</div>
                 <div id="editorNotes" class="quill-editor" style="height: 150px;"></div>
             </div>
             <div class="field-group">
-                <div class="field-label">📌 补充（背景、评价等）</div>
+                <div class="field-label">补充（背景、评价等）</div>
                 <div id="editorSupplement" class="quill-editor" style="height: 150px;"></div>
             </div>
             <div class="field-group">
-                <div class="field-label">🌐 译文</div>
+                <div class="field-label">译文</div>
                 <div id="editorTranslation" class="quill-editor" style="height: 180px;"></div>
             </div>
             <div class="field-group">
-            <div class="field-label">📎 相关人物（来自双链）</div>
+            <div class="field-label">相关人物（来自双链）</div>
             <div id="modalRelatedPersonsContainer" style="padding: 12px; background: #f9f9fb; min-height: 50px; display: flex; flex-wrap: wrap; gap: 8px;">
                 <!-- 动态显示双链中的人物 -->
             </div>
@@ -4522,9 +5159,7 @@ function renderModalForm() {
             <div class="field-group">
                 <div class="field-label">📝 生平与成就</div>
                 <div id="editorContent" class="quill-editor" style="height: 200px;"></div>
-                <div style="padding: 8px 12px; font-size: 12px; color: #8e8e93; background: #f9f9fb; border-top: 0.5px solid #e5e5ea;">
-                    💡 提示：选中文字后点击工具栏的🔗按钮，自动添加 [[关系 人名]] 双链
-                </div>
+                
             </div>
             <div class="field-group">
                 <div class="field-label">📎 相关人物（来自双链）</div>
@@ -5298,6 +5933,10 @@ function bindEvents() {
     const closeSettingsBtn = document.getElementById('closeSettingsBtn');
     if (closeSettingsBtn) closeSettingsBtn.addEventListener('click', () => closeModal('settingsModal'));
 
+    // 关闭关系导图模态窗
+    const closeGraphBtn = document.getElementById('closeGraphBtn');
+    if (closeGraphBtn) closeGraphBtn.addEventListener('click', () => closeModal('graphModal'));
+
     // 弹窗内的上传和恢复按钮
     const saveToGistBtn = document.getElementById('saveToGistBtn');
     if (saveToGistBtn) saveToGistBtn.addEventListener('click', saveToGist);
@@ -5493,16 +6132,81 @@ function loadGistSettings() {
         setTimeout(() => { if(div) div.innerText = ''; }, 3000); 
     }
     
+// ==================== 自动静默同步函数 ====================
+async function autoSyncToGist(showTip = false) {
+    const token = localStorage.getItem(PAGE_ID + '_github_token');
+    const gistId = localStorage.getItem(PAGE_ID + '_gist_id');
+    
+    if (!token || !gistId) {
+        if (showTip) showMsg('⚠️ 未配置 Gist，无法同步', 'warning');
+        return;
+    }
+    
+    // 防止频繁同步
+    const now = Date.now();
+    if (isSyncing || (now - lastSyncTime < 5000)) {
+        return;
+    }
+    
+    isSyncing = true;
+    
+    // 👇 获取上传按钮并开始旋转
+    const uploadBtn = document.getElementById('headerSaveToGistBtnDesktop') || document.getElementById('headerSaveToGistBtn');
+    setButtonLoading(uploadBtn, true);
+    
+    showMsg('☁️ 正在同步...', 'syncing');
+    
+    const backupData = {
+        version: '1.0',
+        backupTime: new Date().toISOString(),
+        notes: notes,
+        trees: trees
+    };
+    
+    try {
+        const getRes = await fetch(`https://api.github.com/gists/${gistId}`, {
+            headers: { 'Authorization': `token ${token}` }
+        });
+        if (!getRes.ok) throw new Error('获取 Gist 失败');
+        
+        const gistData = await getRes.json();
+        const filename = Object.keys(gistData.files)[0] || 'history_backup.json';
+        
+        const updateRes = await fetch(`https://api.github.com/gists/${gistId}`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `token ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                files: { [filename]: { content: JSON.stringify(backupData, null, 2) } }
+            })
+        });
+        
+        if (!updateRes.ok) throw new Error(`上传失败: ${updateRes.status}`);
+        
+        lastSyncTime = now;
+        showMsg('✅ 同步成功', 'success');
+        
+    } catch (err) {
+        console.warn('同步失败:', err);
+        showMsg('❌ 同步失败: ' + err.message, 'error');
+    } finally {
+        // 👇 停止旋转
+        setButtonLoading(uploadBtn, false);
+        isSyncing = false;
+    }
+}
     function init() { 
-
-// ✅ 页面加载时清除残留的返回历史记录，避免按钮无故显示
+    localStorage.setItem('return_stack', JSON.stringify([]));
     localStorage.removeItem('return_classic');
     localStorage.removeItem('return_chapter');
 
-        loadTrees(); 
-        loadNotes(); 
-bindCustomInputEvents(); 
-        // 清理重复笔记（保留 id 最大的）
+    loadTrees(); 
+    loadNotes(); 
+    bindCustomInputEvents(); 
+    
+    // 清理重复笔记
     const seen = new Map();
     const uniqueNotes = [];
     for (let note of notes) {
@@ -5521,17 +6225,29 @@ bindCustomInputEvents();
         saveNotes();
         console.log('清理了重复笔记');
     }
-        migrateOldNotes(); 
-        loadCurrent(); 
-        
-        
-        bindEvents(); 
-        bindLifespanEvents();  
-        updateClassicUI(); 
-        renderTree(); 
-        renderRecords(); 
-        showMsg('历史文库已就绪 — 点击卡片正文编辑，点击标签跳转'); 
-    }
+    migrateOldNotes(); 
+    loadCurrent(); 
+    
+    bindEvents(); 
+    bindLifespanEvents();  
+    updateClassicUI(); 
+    renderTree(); 
+    renderRecords(); 
+    
+    // ✅ 添加：强制修复侧边栏高度
+    setTimeout(function() {
+        const sidebar = document.querySelector('.sidebar');
+        const twoColumns = document.querySelector('.two-columns');
+        const appContainer = document.querySelector('.app-container');
+        if (sidebar) sidebar.style.height = '100%';
+        if (twoColumns) twoColumns.style.flex = '1';
+        if (appContainer) appContainer.style.height = '100vh';
+    }, 100);
+    
+    showMsg('历史文库已就绪 — 点击卡片正文编辑，点击标签跳转'); 
+}
+
+    
     init();
     
 </script>
