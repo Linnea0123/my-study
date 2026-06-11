@@ -2873,424 +2873,7 @@ function cancelEdit(el) {
     showMsg('已取消编辑');
 }
   
-function renderRecords() {
-    const container = document.getElementById('recordsContainer');
-    let currentNote = notes.find(n => n.classic === currentClassic && n.chapter === currentChapter);
-    const isClassic = ['lunyu', 'shijing', 'tangshi', 'songci'].includes(currentClassic);
-    
-    // 没有笔记时，显示创建按钮
-    if (!currentNote) {
-        container.innerHTML = `
-            <div class="empty-msg" style="text-align: center; padding: 60px 20px;">
-                暂无“${escapeHtml(currentChapter)}”的笔记
-                <div style="margin-top: 24px;">
-                    <button id="createNoteBtn" style="background: #61A2DA; border: none; padding: 10px 28px; border-radius: 8px; color: white; font-size: 14px; cursor: pointer; font-weight: 500;">创建笔记</button>
-                </div>
-            </div>
-        `;
-        const createBtn = document.getElementById('createNoteBtn');
-        if (createBtn) {
-            createBtn.addEventListener('click', () => openAddModal());
-        }
-        return;
-    }
-    
-    let contentHtml = '<div class="record-card" style="margin: 0;">';
-    contentHtml += `<div class="record-header">
-    <div>
-        <span class="record-title" id="editableChapterTitle" style="cursor: pointer;" title="双击编辑目录名称">${escapeHtml(currentNote.chapter)}</span>
-        ${!isClassic && currentNote.lifespan ? `<span style="margin-left: 12px; font-size: 13px; color: #8e8e93; font-family: monospace; background: #f2f2f6; padding: 4px 10px; border-radius: 20px;">${escapeHtml(currentNote.lifespan)}</span>` : ''}
-    </div>
-    <div class="record-header-right">
-        <span class="record-meta">${new Date(currentNote.updatedAt).toLocaleDateString()}</span>
-        <button class="edit-icon" data-id="${currentNote.id}" title="编辑" style="background:none; border:none; cursor: pointer; padding: 4px 6px; border-radius: 6px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-            </svg>
-        </button>
-        <button class="delete-icon" data-id="${currentNote.id}" title="删除笔记" style="background:none; border:none; font-size: 20px; cursor: pointer; color: #8e8e93;">×</button>
-    </div>
-</div>`;
 
-
-contentHtml += '<div class="record-full-content">';
-    
-    
-    
-  if (isClassic) {
-    // ========== 经典文献模式：原文、注释、补充、译文（空白区块自动折叠） ==========
-    
-    // 辅助函数：判断内容是否为空
-    function isEmptyContent(str) {
-        return !str || str === '<p><br></p>' || str.trim() === '';
-    }
-    
-    // 获取各区块内容
-    const hasOriginal = !isEmptyContent(currentNote.original);
-    const hasNotes = !isEmptyContent(currentNote.notes);
-    const hasSupplement = !isEmptyContent(currentNote.supplement);
-    const hasTranslation = !isEmptyContent(currentNote.translation);
-    
-    // 1. 原文（始终展开）
-    const originalContent = hasOriginal ? currentNote.original : '<div style="color: #aeaeb2; padding: 20px; text-align: center;">📖 暂无原文，双击此处添加</div>';
-    contentHtml += `<div class="collapsible-box" style="margin-bottom: 12px;">
-        <div class="collapsible-header" onclick="toggleCollapsible('originalContent_${currentNote.id}')">
-            <span class="collapse-arrow">▼</span> 原文
-        </div>
-        <div id="originalContent_${currentNote.id}" class="collapsible-content" style="display: block;">
-            <div class="full-text editable-inline" data-field="original" data-id="${currentNote.id}" style="font-size: 15px; line-height: 1.8; min-height: 60px;">${originalContent}</div>
-        </div>
-    </div>`;
-    
-    // 2. 注释（空白时折叠）
-    const notesContent = hasNotes ? currentNote.notes : '';
-    contentHtml += `<div class="collapsible-box" style="margin-bottom: 12px;">
-        <div class="collapsible-header" onclick="toggleCollapsible('notesContent_${currentNote.id}')">
-            <span class="collapse-arrow">${hasNotes ? '▼' : '▶'}</span> 注释
-        </div>
-        <div id="notesContent_${currentNote.id}" class="collapsible-content" style="display: ${hasNotes ? 'block' : 'none'};">
-            <div class="full-text editable-inline" data-field="notes" data-id="${currentNote.id}" style="font-size: 14px; line-height: 1.7; color: #3a3a44; min-height: 60px;">${notesContent}</div>
-        </div>
-    </div>`;
-    
-    // 3. 补充（空白时折叠）
-const supplementContent = hasSupplement ? currentNote.supplement : '';   contentHtml += `<div class="collapsible-box" style="margin-bottom: 12px;">
-        <div class="collapsible-header" onclick="toggleCollapsible('supplementContent_${currentNote.id}')">
-            <span class="collapse-arrow">${hasSupplement ? '▼' : '▶'}</span> 补充（背景、评价等）
-        </div>
-        <div id="supplementContent_${currentNote.id}" class="collapsible-content" style="display: ${hasSupplement ? 'block' : 'none'};">
-            <div class="full-text editable-inline" data-field="supplement" data-id="${currentNote.id}" style="font-size: 14px; line-height: 1.7; min-height: 60px;">${supplementContent}</div>
-        </div>
-    </div>`;
-    
-    // 4. 译文（空白时折叠，颜色改为黑色）
-const translationContent = hasTranslation ? currentNote.translation : '';
-   contentHtml += `<div class="collapsible-box" style="margin-bottom: 12px;">
-        <div class="collapsible-header" onclick="toggleCollapsible('translationContent_${currentNote.id}')">
-            <span class="collapse-arrow">${hasTranslation ? '▼' : '▶'}</span> 译文
-        </div>
-        <div id="translationContent_${currentNote.id}" class="collapsible-content" style="display: ${hasTranslation ? 'block' : 'none'};">
-            <div class="full-text editable-inline" data-field="translation" data-id="${currentNote.id}" style="font-size: 14px; line-height: 1.7; color: #1c1c1e; min-height: 60px;">${translationContent}</div>
-        </div>
-    </div>`;
-    
-    // 如果所有内容都为空，显示提示
-    if (!hasOriginal && !hasNotes && !hasSupplement && !hasTranslation) {
-        contentHtml += `<div style="color: #aeaeb2; padding: 40px 20px; text-align: center;">📝 暂无内容，双击上方空白处添加</div>`;
-    }
-}  else {
-        
-        
-        
-        
-        // ========== 历史人物模式：生平与成就 ==========
-        if (currentNote.content && currentNote.content !== '<p><br></p>') {
-            contentHtml += `<div class="original-box" data-id="${currentNote.id}">
-                <div class="full-text outline-container" style="font-size: 15px; line-height: 1.8;">${currentNote.content}</div>
-            </div>`;
-        } else {
-            contentHtml += `<div style="color: #aeaeb2; padding: 20px; text-align: center;">📝 暂无内容，点击编辑添加</div>`;
-        }
-        
-        // 相关事件
-        if (currentNote.relatedEvents && currentNote.relatedEvents.length > 0) {
-            let eventsHtml = '<div style="margin: 16px 0 8px 0;"><div style="font-size: 13px; font-weight: 500; color: #8e8e93; margin-bottom: 8px;">相关事件</div>';
-            currentNote.relatedEvents.forEach(event => {
-                eventsHtml += `<span class="timeline-node" data-person="${escapeHtml(event)}" style="display:inline-flex; background:#e9e9ef; padding:5px 14px; border-radius:20px; font-size:13px; color:#61A2DA; cursor:pointer; margin-right:8px; margin-bottom:6px;"> ${escapeHtml(event)}</span>`;
-            });
-            eventsHtml += '</div>';
-            contentHtml += eventsHtml;
-        }
-        
-        // 相关人物
-        if (currentNote.relatedPersons && currentNote.relatedPersons.length > 0) {
-            let personsHtml = '<div style="margin: 12px 0 8px 0;"><div style="font-size: 13px; font-weight: 500; color: #8e8e93; margin-bottom: 8px;">相关人物</div>';
-            currentNote.relatedPersons.forEach(item => {
-                const personName = typeof item === 'string' ? item : item.name;
-                const relation = typeof item === 'string' ? '' : item.relation;
-                const displayText = relation ? `${relation} ${personName}` : personName;
-                personsHtml += `<span class="related-tag-clickable" data-person="${escapeHtml(personName)}" style="display:inline-flex; background:#e9e9ef; padding:5px 14px; border-radius:20px; font-size:13px; color:#61A2DA; cursor:pointer; margin-right:8px; margin-bottom:6px;">👤 ${escapeHtml(displayText)}</span>`;
-            });
-            personsHtml += '</div>';
-            contentHtml += personsHtml;
-        }
-        
-        // 时代线横线
-        if (currentNote.timeline && currentNote.timeline.length > 0) {
-            let timelineHtml = `
-                <div class="timeline-horizontal" style="margin: 20px 0 8px 0; padding: 16px 0; background: #f9f9fb; border-radius: 14px; overflow-x: auto;">
-                    <div class="timeline-horizontal-title" style="font-size:12px; font-weight:500; color:#8e8e93; margin-bottom:12px; padding:0 16px;">时代线</div>
-                    <div class="timeline-track" style="position:relative; display:flex; align-items:center; justify-content:space-around; min-width:300px; padding:0 16px;">
-                        <div class="timeline-line" style="position:absolute; top:50%; left:50px; right:50px; height:2px; background:#c6c6c8; transform:translateY(-50%); z-index:0;"></div>
-            `;
-            currentNote.timeline.forEach(person => {
-                timelineHtml += `
-                    <div class="timeline-node" data-person="${escapeHtml(person)}" style="position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; cursor:pointer;">
-                        <div class="timeline-dot" style="width:10px; height:10px; background:#61A2DA; border-radius:50%; border:2px solid white; box-shadow:0 1px 2px rgba(0,0,0,0.1); margin-bottom:6px;"></div>
-                        <div class="timeline-label" style="font-size:12px; font-weight:500; color:#1c1c1e; white-space:nowrap; background:white; padding:3px 10px; border-radius:14px; box-shadow:0 1px 2px rgba(0,0,0,0.08);">${escapeHtml(person)}</div>
-                    </div>
-                `;
-            });
-            timelineHtml += `</div></div>`;
-            contentHtml += timelineHtml;
-        }
-    }
-    
-    contentHtml += '</div></div>';
-    container.innerHTML = contentHtml;
-
-// 绑定双击编辑事件
-if (typeof bindInlineEditors === 'function') {
-    bindInlineEditors();
-}
-
-    
-    // ========== 大纲折叠功能（仅历史人物模式需要） ==========
-    if (!isClassic) {
-        setTimeout(() => {
-            const containerEl = document.querySelector('.full-text');
-            if (!containerEl) return;
-            
-            containerEl.querySelectorAll('.fold-toggle').forEach(btn => btn.remove());
-            containerEl.querySelectorAll('li').forEach(li => {
-                li.classList.remove('has-fold-btn');
-                li.style.listStyle = '';
-                li.style.display = '';
-            });
-            
-            const allLi = Array.from(containerEl.querySelectorAll('li'));
-            if (allLi.length === 0) return;
-            
-            const itemsWithLevel = allLi.map(li => {
-                let level = 0;
-                for (let cls of li.classList) {
-                    if (cls.startsWith('ql-indent-')) {
-                        level = parseInt(cls.replace('ql-indent-', ''));
-                        break;
-                    }
-                }
-                return { li, level };
-            });
-            
-            for (let i = 0; i < itemsWithLevel.length; i++) {
-                const current = itemsWithLevel[i];
-                let children = [];
-                
-                for (let j = i + 1; j < itemsWithLevel.length; j++) {
-                    const next = itemsWithLevel[j];
-                    if (next.level > current.level) {
-                        children.push(next.li);
-                    } else {
-                        break;
-                    }
-                }
-                
-                if (children.length > 0 && !current.li.querySelector('.fold-toggle')) {
-                    const firstChild = current.li.firstChild;
-                    
-                    const foldBtn = document.createElement('span');
-                    foldBtn.className = 'fold-toggle';
-                   
-                    foldBtn.setAttribute('data-expanded', 'false');
-                    foldBtn.style.cssText = 'cursor: pointer; display: inline-block; width: 20px; color: #61A2DA; font-size: 12px; user-select: none; text-align: center; margin-right: 6px;';
-                    
-                    if (firstChild) {
-                        current.li.insertBefore(foldBtn, firstChild);
-                    } else {
-                        current.li.appendChild(foldBtn);
-                    }
-                    current.li.classList.add('has-fold-btn');
-                    foldBtn._children = children;
-                    
-                    foldBtn.onclick = function(e) {
-    e.stopPropagation();
-    const isExpanded = this.getAttribute('data-expanded') === 'true';
-    const childrenLis = this._children;
-    
-    if (isExpanded) {
-        childrenLis.forEach(child => child.style.display = 'none');
-        this.setAttribute('data-expanded', 'false');
-        // 不再设置 innerHTML，由 CSS 伪元素控制
-    } else {
-        childrenLis.forEach(child => child.style.display = '');
-        this.setAttribute('data-expanded', 'true');
-    }
-};
-
-// 初始状态：展开
-foldBtn.setAttribute('data-expanded', 'false');
-// 初始折叠：隐藏所有子元素
-children.forEach(child => child.style.display = 'none');
-                }
-            }
-            
-            allLi.forEach(li => {
-                const parent = li.parentElement;
-                const isOrderedList = parent && parent.tagName === 'OL';
-                
-                if (li.classList.contains('has-fold-btn')) {
-                    li.style.listStyle = 'none';
-                } else {
-                    li.style.listStyle = '';
-                    if (isOrderedList) {
-                        li.style.listStyleType = 'decimal';
-                    } else {
-                        li.style.listStyleType = 'disc';
-                    }
-                    li.style.marginLeft = '';
-                    li.style.paddingLeft = '';
-                }
-            });
-        }, 100);
-    }
-    
-    // 编辑按钮
-    document.querySelectorAll('.edit-icon').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const id = parseInt(btn.dataset.id);
-            openEditModal(id);
-        });
-    });
-    
-    // 删除按钮
-    document.querySelectorAll('.delete-icon').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (confirm('确定删除这条笔记吗？')) {
-                const id = parseInt(btn.dataset.id);
-                notes = notes.filter(n => n.id !== id);
-                saveNotes();
-                renderRecords();
-                showMsg('笔记已删除');
-            }
-        });
-    });
-
-
-
-// 标题双击编辑（新增功能）
-const titleSpan = document.getElementById('editableChapterTitle');
-if (titleSpan) {
-    titleSpan.ondblclick = (e) => {
-        e.stopPropagation();
-        const oldName = currentChapter;
-        const newName = prompt('编辑目录名称:', oldName);
-        
-        if (newName && newName.trim() && newName !== oldName) {
-            const newNameTrimmed = newName.trim();
-            
-            // 更新目录树
-            function updateNodeName(nodes, oldName, newName) {
-                for (let node of nodes) {
-                    if (node.name === oldName) {
-                        node.name = newName;
-                        return true;
-                    }
-                    if (node.children && updateNodeName(node.children, oldName, newName)) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-            updateNodeName(getCurrentTree(), oldName, newNameTrimmed);
-            saveTrees();
-            
-            // 同步笔记
-            let updatedCount = 0;
-            notes = notes.map(note => {
-                if (note.classic === currentClassic && note.chapter === oldName) {
-                    updatedCount++;
-                    return { ...note, chapter: newNameTrimmed, updatedAt: new Date().toISOString() };
-                }
-                return note;
-            });
-            
-            if (updatedCount > 0) {
-                saveNotes();
-            }
-            
-            currentChapter = newNameTrimmed;
-            saveCurrent();
-            renderTree();
-            renderRecords();
-            showMsg(`✅ 已重命名并同步 ${updatedCount} 条笔记`);
-        }
-    };
-}
-
-    
-    // 相关人物点击跳转（仅历史模式）
-    if (!isClassic) {
-        document.querySelectorAll('.related-tag-clickable').forEach(tag => {
-            tag.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const personName = tag.dataset.person;
-                if (personName) {
-                    const leaves = getAllLeafNodes(getCurrentTree());
-                    const exists = leaves.find(l => l.name === personName);
-                    if (exists) {
-                        currentChapter = personName;
-                        saveCurrent();
-                        renderTree();
-                        renderRecords();
-                        showMsg(`切换到: ${personName}`);
-                    } else {
-                        showMsg(`人物"${personName}"暂未创建，请先在目录中添加`);
-                    }
-                }
-            });
-        });
-        
-        // 时代线点击跳转
-        document.querySelectorAll('.timeline-node').forEach(node => {
-            node.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const personName = node.dataset.person;
-                if (personName) {
-                    const leaves = getAllLeafNodes(getCurrentTree());
-                    const exists = leaves.find(l => l.name === personName);
-                    if (exists) {
-                        currentChapter = personName;
-                        saveCurrent();
-                        renderTree();
-                        renderRecords();
-                        showMsg(`切换到: ${personName}`);
-                    } else {
-                        showMsg(`人物"${personName}"暂未创建`);
-                    }
-                }
-            });
-        });
-    }
-}
-
-
-
-
-    // 相关事件点击跳转
-    document.querySelectorAll('.event-clickable').forEach(el => {
-        el.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const eventName = el.dataset.event;
-            if (eventName) {
-                const leaves = getAllLeafNodes(getCurrentTree());
-                const exists = leaves.find(l => l.name === eventName);
-                if (exists) {
-                    currentChapter = eventName;
-                    saveCurrent();
-                    renderTree();
-                    renderRecords();
-                    showMsg(`切换到: ${eventName}`);
-                } else {
-                    showMsg(`事件"${eventName}"暂未创建`);
-                }
-            }
-        });
-    });
-
-// 打开新增模态窗
 
 
 function openAddModal() {
@@ -3312,6 +2895,8 @@ function openAddModal() {
             renderRelatedEvents();
             bindLifespanEvents();
             bindModalEvents();  // 绑定模态窗内的按钮事件
+            updateModalRelatedPersons();  //
+             updateModalRelatedPersons();
         }, 50);
     }
     
@@ -3355,6 +2940,8 @@ function openEditModal(id) {
             renderRelatedEvents();
             bindLifespanEvents();
             bindModalEvents();
+            updateModalRelatedPersons(); 
+             updateModalRelatedPersons();  
         }, 50);
     }
     
@@ -3389,25 +2976,7 @@ function resetModalFields() {
 }
 // 绑定模态窗内的按钮事件（每次打开时需要重新绑定）
 function bindModalEvents() {
-    // 相关事件
-    const addEventBtn = document.getElementById('addRelatedEventBtn');
-    const eventInput = document.getElementById('relatedEventInput');
-    if (addEventBtn) {
-        addEventBtn.onclick = addRelatedEvent;
-    }
-    if (eventInput) {
-        eventInput.onkeypress = (e) => { if (e.key === 'Enter') addRelatedEvent(); };
-    }
     
-    // 相关人物
-    const addPersonBtn = document.getElementById('addRelatedPersonBtn');
-    const personInput = document.getElementById('relatedPersonInput');
-    if (addPersonBtn) {
-        addPersonBtn.onclick = addRelatedPerson;
-    }
-    if (personInput) {
-        personInput.onkeypress = (e) => { if (e.key === 'Enter') addRelatedPerson(); };
-    }
     
     // 时代线
     const addTimelineBtn = document.getElementById('addTimelineBtn');
@@ -3433,7 +3002,568 @@ function closeModal(id) {
     if(quillContent) quillContent.root.innerHTML = ''; 
 }
     
+function renderRecords() {
+    const container = document.getElementById('recordsContainer');
+    let currentNote = notes.find(n => n.classic === currentClassic && n.chapter === currentChapter);
+    const isClassic = ['lunyu', 'shijing', 'tangshi', 'songci'].includes(currentClassic);
+    
+    // 没有笔记时，显示创建按钮
+    if (!currentNote) {
+        container.innerHTML = `
+            <div class="empty-msg" style="text-align: center; padding: 60px 20px;">
+                暂无“${escapeHtml(currentChapter)}”的笔记
+                <div style="margin-top: 24px;">
+                    <button id="createNoteBtn" style="background: #61A2DA; border: none; padding: 10px 28px; border-radius: 8px; color: white; font-size: 14px; cursor: pointer; font-weight: 500;">创建笔记</button>
+                </div>
+            </div>
+        `;
+        const createBtn = document.getElementById('createNoteBtn');
+        if (createBtn) {
+            createBtn.addEventListener('click', () => openAddModal());
+        }
+        return;
+    }
+    
+    let contentHtml = '<div class="record-card" style="margin: 0;">';
+    
+    // 实时检查返回栈是否有记录（每次渲染都重新获取）
+    let currentStack = localStorage.getItem('return_stack');
+    let hasReturnPage = currentStack ? JSON.parse(currentStack).length > 0 : false;
 
+    contentHtml += `<div class="record-header">
+    <div style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
+        ${hasReturnPage ? `<button id="backToPrevBtn" class="back-btn" style="background: none; border: none; cursor: pointer; width: 36px; height: 36px; border-radius: 20px; display: inline-flex; align-items: center; justify-content: center;" title="返回">
+            <svg width="18" height="18" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="48" height="48" fill="white" fill-opacity="0.01"/>
+                <path d="M12.3638 8L5.99981 14.364L12.3638 20.7279" stroke="#61A2DA" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M6 14.364L28.6722 14.364C35.557 14.364 41.2122 19.8028 41.4805 26.6824V26.6824C41.7641 33.952 35.9474 40 28.6722 40H12" stroke="#61A2DA" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>` : ''}
+        <span class="record-title" id="editableChapterTitle" style="cursor: pointer;" title="双击编辑目录名称">${escapeHtml(currentNote.chapter)}</span>
+        ${!isClassic && currentNote.lifespan ? `<span style="margin-left: 12px; font-size: 13px; color: #8e8e93; font-family: monospace; background: #f2f2f6; padding: 4px 10px; border-radius: 20px;">${escapeHtml(currentNote.lifespan)}</span>` : ''}
+    </div>
+    <div class="record-header-right">
+        <span class="record-meta">${new Date(currentNote.updatedAt).toLocaleDateString()}</span>
+        <button class="edit-icon" data-id="${currentNote.id}" title="编辑" style="background:none; border:none; cursor: pointer; padding: 4px 6px; border-radius: 6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
+        </button>
+        <button class="delete-icon" data-id="${currentNote.id}" title="删除笔记" style="background:none; border:none; font-size: 20px; cursor: pointer; color: #8e8e93;">×</button>
+    </div>
+</div>`;
+    contentHtml += '<div class="record-full-content">';
+    
+    if (isClassic) {
+        // ========== 经典文献模式 ==========
+        function isEmptyContent(str) {
+            return !str || str === '<p><br></p>' || str.trim() === '';
+        }
+        
+        const hasOriginal = !isEmptyContent(currentNote.original);
+        const hasNotes = !isEmptyContent(currentNote.notes);
+        const hasSupplement = !isEmptyContent(currentNote.supplement);
+        const hasTranslation = !isEmptyContent(currentNote.translation);
+        
+        function processWikilink(content) {
+            if (!content) return content;
+            return content.replace(/\[\[([^\]]+)\]\]/g, (match, linkContent) => {
+                let relation = '';
+                let personName = linkContent;
+                const relationMatch = linkContent.match(/^(.+?)[\s：:]+(.+)$/);
+                if (relationMatch) {
+                    relation = relationMatch[1];
+                    personName = relationMatch[2];
+                }
+                const displayText = relation ? `${relation} ${personName}` : personName;
+                return `<span class="wikilink-text" data-person="${escapeHtml(personName)}" data-relation="${escapeHtml(relation)}" style="color:#61A2DA; cursor:pointer;">${escapeHtml(displayText)}</span>`;
+            });
+        }
+        
+        let originalContent = hasOriginal ? currentNote.original : '<div style="color: #aeaeb2; padding: 20px; text-align: center;">📖 暂无原文，双击此处添加</div>';
+        originalContent = processWikilink(originalContent);
+        contentHtml += `<div class="collapsible-box" style="margin-bottom: 12px;">
+            <div class="collapsible-header" onclick="toggleCollapsible('originalContent_${currentNote.id}')">
+                <span class="collapse-arrow">▼</span> 原文
+            </div>
+            <div id="originalContent_${currentNote.id}" class="collapsible-content" style="display: block;">
+                <div class="full-text editable-inline" data-field="original" data-id="${currentNote.id}" style="font-size: 15px; line-height: 1.8; min-height: 60px;">${originalContent}</div>
+            </div>
+        </div>`;
+
+        let notesContent = hasNotes ? currentNote.notes : '';
+        notesContent = processWikilink(notesContent);
+        contentHtml += `<div class="collapsible-box" style="margin-bottom: 12px;">
+            <div class="collapsible-header" onclick="toggleCollapsible('notesContent_${currentNote.id}')">
+                <span class="collapse-arrow">${hasNotes ? '▼' : '▶'}</span> 注释
+            </div>
+            <div id="notesContent_${currentNote.id}" class="collapsible-content" style="display: ${hasNotes ? 'block' : 'none'};">
+                <div class="full-text editable-inline" data-field="notes" data-id="${currentNote.id}" style="font-size: 14px; line-height: 1.7; color: #3a3a44; min-height: 60px;">${notesContent}</div>
+            </div>
+        </div>`;
+
+        let supplementContent = hasSupplement ? currentNote.supplement : '';
+        supplementContent = processWikilink(supplementContent);
+        contentHtml += `<div class="collapsible-box" style="margin-bottom: 12px;">
+            <div class="collapsible-header" onclick="toggleCollapsible('supplementContent_${currentNote.id}')">
+                <span class="collapse-arrow">${hasSupplement ? '▼' : '▶'}</span> 补充（背景、评价等）
+            </div>
+            <div id="supplementContent_${currentNote.id}" class="collapsible-content" style="display: ${hasSupplement ? 'block' : 'none'};">
+                <div class="full-text editable-inline" data-field="supplement" data-id="${currentNote.id}" style="font-size: 14px; line-height: 1.7; min-height: 60px;">${supplementContent}</div>
+            </div>
+        </div>`;
+
+        let translationContent = hasTranslation ? currentNote.translation : '';
+        translationContent = processWikilink(translationContent);
+        contentHtml += `<div class="collapsible-box" style="margin-bottom: 12px;">
+            <div class="collapsible-header" onclick="toggleCollapsible('translationContent_${currentNote.id}')">
+                <span class="collapse-arrow">${hasTranslation ? '▼' : '▶'}</span> 译文
+            </div>
+            <div id="translationContent_${currentNote.id}" class="collapsible-content" style="display: ${hasTranslation ? 'block' : 'none'};">
+                <div class="full-text editable-inline" data-field="translation" data-id="${currentNote.id}" style="font-size: 14px; line-height: 1.7; color: #1c1c1e; min-height: 60px;">${translationContent}</div>
+            </div>
+        </div>`;
+
+        const relatedPersonsMap = new Map();
+        const allContent = (currentNote.original || '') + (currentNote.notes || '') + (currentNote.supplement || '') + (currentNote.translation || '');
+        if (allContent) {
+            const linkRegex = /\[\[([^\]]+)\]\]/g;
+            let match;
+            while ((match = linkRegex.exec(allContent)) !== null) {
+                let linkText = match[1];
+                let personName = linkText;
+                const relationMatch = linkText.match(/^(.+?)[\s：:](.+)$/);
+                if (relationMatch) {
+                    personName = relationMatch[2];
+                }
+                if (personName && personName.trim()) {
+                    relatedPersonsMap.set(personName.trim(), '');
+                }
+            }
+        }
+        
+        if (currentNote.relatedPersons && currentNote.relatedPersons.length > 0) {
+            currentNote.relatedPersons.forEach(item => {
+                const personName = typeof item === 'string' ? item : item.name;
+                if (!relatedPersonsMap.has(personName)) {
+                    relatedPersonsMap.set(personName, '');
+                }
+            });
+        }
+        
+        if (relatedPersonsMap.size > 0) {
+            let relatedHtml = '<div style="margin: 16px 0 8px 0; padding-top: 12px; border-top: 1px solid #e5e5ea;"><div style="font-size: 13px; font-weight: 500; color: #8e8e93; margin-bottom: 10px;">相关人物</div><div style="display: flex; flex-wrap: wrap; gap: 8px;">';
+            for (const [personName] of relatedPersonsMap) {
+                relatedHtml += `<span class="related-person-tag" data-person="${escapeHtml(personName)}" style="display:inline-flex; background:#e9e9ef; padding:6px 14px; border-radius:20px; font-size:13px; color:#61A2DA; cursor:pointer; transition:all 0.2s;">${escapeHtml(personName)}</span>`;
+            }
+            relatedHtml += '</div></div>';
+            contentHtml += relatedHtml;
+        }
+
+        if (!hasOriginal && !hasNotes && !hasSupplement && !hasTranslation) {
+            contentHtml += `<div style="color: #aeaeb2; padding: 40px 20px; text-align: center;">📝 暂无内容，双击上方空白处添加</div>`;
+        }
+    } else {
+        // ========== 历史人物模式 ==========
+        if (currentNote.content && currentNote.content !== '<p><br></p>') {
+            let contentHtml_temp = currentNote.content;
+            contentHtml_temp = contentHtml_temp.replace(/\[\[([^\]]+)\]\]/g, (match, linkContent) => {
+                let relation = '';
+                let personName = linkContent;
+                const relationMatch = linkContent.match(/^(.+?)[\s：:]+(.+)$/);
+                if (relationMatch) {
+                    relation = relationMatch[1];
+                    personName = relationMatch[2];
+                }
+                const displayText = relation ? `${relation} ${personName}` : personName;
+                return `<span class="wikilink-text" data-person="${escapeHtml(personName)}" data-relation="${escapeHtml(relation)}" style="color:#61A2DA; cursor:pointer;">${escapeHtml(displayText)}</span>`;
+            });
+            contentHtml += `<div class="original-box" data-id="${currentNote.id}">
+                <div class="full-text outline-container" style="font-size: 15px; line-height: 1.8;">${contentHtml_temp}</div>
+            </div>`;
+        } else {
+            contentHtml += `<div style="color: #aeaeb2; padding: 20px; text-align: center;">📝 暂无内容，点击编辑添加</div>`;
+        }
+        
+        if (currentNote.timeline && currentNote.timeline.length > 0) {
+            let timelineHtml = `
+                <div class="timeline-horizontal" style="margin: 20px 0 8px 0; padding: 16px 0; background: #f9f9fb; border-radius: 14px; overflow-x: auto;">
+                    <div class="timeline-horizontal-title" style="font-size:12px; font-weight:500; color:#8e8e93; margin-bottom:12px; padding:0 16px;">时代线</div>
+                    <div class="timeline-track" style="position:relative; display:flex; align-items:center; justify-content:space-around; min-width:300px; padding:0 16px;">
+                        <div class="timeline-line" style="position:absolute; top:50%; left:50px; right:50px; height:2px; background:#c6c6c8; transform:translateY(-50%); z-index:0;"></div>
+            `;
+            currentNote.timeline.forEach(person => {
+                timelineHtml += `
+                    <div class="timeline-node" data-person="${escapeHtml(person)}" style="position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; cursor:pointer;">
+                        <div class="timeline-dot" style="width:10px; height:10px; background:#61A2DA; border-radius:50%; border:2px solid white; box-shadow:0 1px 2px rgba(0,0,0,0.1); margin-bottom:6px;"></div>
+                        <div class="timeline-label" style="font-size:12px; font-weight:500; color:#1c1c1e; white-space:nowrap; background:white; padding:3px 10px; border-radius:14px; box-shadow:0 1px 2px rgba(0,0,0,0.08);">${escapeHtml(person)}</div>
+                    </div>
+                `;
+            });
+            timelineHtml += `</div></div>`;
+            contentHtml += timelineHtml;
+        }
+        
+        const relatedPersonsMap = new Map();
+        
+        if (currentNote.relatedPersons && currentNote.relatedPersons.length > 0) {
+            currentNote.relatedPersons.forEach(item => {
+                const personName = typeof item === 'string' ? item : item.name;
+                const relation = typeof item === 'string' ? '' : item.relation;
+                if (!relatedPersonsMap.has(personName)) {
+                    relatedPersonsMap.set(personName, relation);
+                }
+            });
+        }
+        
+        if (currentNote.content && currentNote.content !== '<p><br></p>') {
+            const linkRegex = /\[\[([^\]]+)\]\]/g;
+            let match;
+            let tempContent = currentNote.content;
+            while ((match = linkRegex.exec(tempContent)) !== null) {
+                let linkText = match[1];
+                let relation = '';
+                let personName = linkText;
+                const relationMatch = linkText.match(/^(.+?)[\s：:]+(.+)$/);
+                if (relationMatch) {
+                    relation = relationMatch[1];
+                    personName = relationMatch[2];
+                }
+                if (personName && personName.trim()) {
+                    if (!relatedPersonsMap.has(personName.trim())) {
+                        relatedPersonsMap.set(personName.trim(), relation);
+                    }
+                }
+            }
+        }
+        
+        if (relatedPersonsMap.size > 0) {
+            let relatedHtml = '<div style="margin: 16px 0 8px 0; padding-top: 12px; border-top: 1px solid #e5e5ea;"><div style="font-size: 13px; font-weight: 500; color: #8e8e93; margin-bottom: 10px;">相关人物</div><div style="display: flex; flex-wrap: wrap; gap: 8px;">';
+            for (const [personName, relation] of relatedPersonsMap) {
+                const displayText = relation ? `${relation} ${personName}` : personName;
+                relatedHtml += `<span class="related-person-tag" data-person="${escapeHtml(personName)}" style="display:inline-flex; background:#e9e9ef; padding:6px 14px; border-radius:20px; font-size:13px; color:#61A2DA; cursor:pointer; transition:all 0.2s;">${escapeHtml(displayText)}</span>`;
+            }
+            relatedHtml += '</div></div>';
+            contentHtml += relatedHtml;
+        }
+    }
+    
+    contentHtml += '</div></div>';
+    container.innerHTML = contentHtml;
+
+    if (typeof bindInlineEditors === 'function') {
+        bindInlineEditors();
+    }
+    
+    if (!isClassic) {
+        setTimeout(() => {
+            const containerEl = document.querySelector('.full-text');
+            if (!containerEl) return;
+            
+            containerEl.querySelectorAll('.fold-toggle').forEach(btn => btn.remove());
+            containerEl.querySelectorAll('li').forEach(li => {
+                li.classList.remove('has-fold-btn');
+                li.style.listStyle = '';
+                li.style.display = '';
+            });
+            
+            const allLi = Array.from(containerEl.querySelectorAll('li'));
+            if (allLi.length === 0) return;
+            
+            const itemsWithLevel = allLi.map(li => {
+                let level = 0;
+                for (let cls of li.classList) {
+                    if (cls.startsWith('ql-indent-')) {
+                        level = parseInt(cls.replace('ql-indent-', ''));
+                        break;
+                    }
+                }
+                return { li, level };
+            });
+            
+            for (let i = 0; i < itemsWithLevel.length; i++) {
+                const current = itemsWithLevel[i];
+                let children = [];
+                
+                for (let j = i + 1; j < itemsWithLevel.length; j++) {
+                    const next = itemsWithLevel[j];
+                    if (next.level > current.level) {
+                        children.push(next.li);
+                    } else {
+                        break;
+                    }
+                }
+                
+                if (children.length > 0 && !current.li.querySelector('.fold-toggle')) {
+                    const firstChild = current.li.firstChild;
+                    const foldBtn = document.createElement('span');
+                    foldBtn.className = 'fold-toggle';
+                    foldBtn.setAttribute('data-expanded', 'false');
+                    foldBtn.style.cssText = 'cursor: pointer; display: inline-block; width: 20px; color: #61A2DA; font-size: 12px; user-select: none; text-align: center; margin-right: 6px;';
+                    
+                    if (firstChild) {
+                        current.li.insertBefore(foldBtn, firstChild);
+                    } else {
+                        current.li.appendChild(foldBtn);
+                    }
+                    current.li.classList.add('has-fold-btn');
+                    foldBtn._children = children;
+                    
+                    foldBtn.onclick = function(e) {
+                        e.stopPropagation();
+                        const isExpanded = this.getAttribute('data-expanded') === 'true';
+                        const childrenLis = this._children;
+                        
+                        if (isExpanded) {
+                            childrenLis.forEach(child => child.style.display = 'none');
+                            this.setAttribute('data-expanded', 'false');
+                        } else {
+                            childrenLis.forEach(child => child.style.display = '');
+                            this.setAttribute('data-expanded', 'true');
+                        }
+                    };
+                    
+                    foldBtn.setAttribute('data-expanded', 'false');
+                    children.forEach(child => child.style.display = 'none');
+                }
+            }
+            
+            allLi.forEach(li => {
+                const parent = li.parentElement;
+                const isOrderedList = parent && parent.tagName === 'OL';
+                
+                if (li.classList.contains('has-fold-btn')) {
+                    li.style.listStyle = 'none';
+                } else {
+                    li.style.listStyle = '';
+                    if (isOrderedList) {
+                        li.style.listStyleType = 'decimal';
+                    } else {
+                        li.style.listStyleType = 'disc';
+                    }
+                    li.style.marginLeft = '';
+                    li.style.paddingLeft = '';
+                }
+            });
+        }, 100);
+    }
+
+    document.querySelectorAll('.edit-icon').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = parseInt(btn.dataset.id);
+            openEditModal(id);
+        });
+    });
+    
+    document.querySelectorAll('.delete-icon').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (confirm('确定删除这条笔记吗？')) {
+                const id = parseInt(btn.dataset.id);
+                notes = notes.filter(n => n.id !== id);
+                saveNotes();
+                renderRecords();
+                showMsg('笔记已删除');
+            }
+        });
+    });
+
+    const titleSpan = document.getElementById('editableChapterTitle');
+    if (titleSpan) {
+        titleSpan.ondblclick = (e) => {
+            e.stopPropagation();
+            const oldName = currentChapter;
+            const newName = prompt('编辑目录名称:', oldName);
+            
+            if (newName && newName.trim() && newName !== oldName) {
+                const newNameTrimmed = newName.trim();
+                
+                function updateNodeName(nodes, oldName, newName) {
+                    for (let node of nodes) {
+                        if (node.name === oldName) {
+                            node.name = newName;
+                            return true;
+                        }
+                        if (node.children && updateNodeName(node.children, oldName, newName)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+                updateNodeName(getCurrentTree(), oldName, newNameTrimmed);
+                saveTrees();
+                
+                let updatedCount = 0;
+                notes = notes.map(note => {
+                    if (note.classic === currentClassic && note.chapter === oldName) {
+                        updatedCount++;
+                        return { ...note, chapter: newNameTrimmed, updatedAt: new Date().toISOString() };
+                    }
+                    return note;
+                });
+                
+                if (updatedCount > 0) {
+                    saveNotes();
+                }
+                
+                currentChapter = newNameTrimmed;
+                saveCurrent();
+                renderTree();
+                renderRecords();
+                showMsg(`✅ 已重命名并同步 ${updatedCount} 条笔记`);
+            }
+        };
+    }
+    
+    // 相关人物标签点击跳转 - 使用栈
+    setTimeout(() => {
+        document.querySelectorAll('.related-person-tag').forEach(el => {
+            if (el._clickHandler) {
+                el.removeEventListener('click', el._clickHandler);
+            }
+            const handler = (e) => {
+                e.stopPropagation();
+                const personName = el.dataset.person;
+                if (personName) {
+                    let returnStack = localStorage.getItem('return_stack');
+                    let stack = returnStack ? JSON.parse(returnStack) : [];
+                    stack.push({
+                        classic: currentClassic,
+                        chapter: currentChapter
+                    });
+                    if (stack.length > 20) stack.shift();
+                    localStorage.setItem('return_stack', JSON.stringify(stack));
+                    
+                    let found = false;
+                    for (const [classicKey, tree] of Object.entries(trees)) {
+                        const leaves = getAllLeafNodes(tree);
+                        const exists = leaves.find(l => l.name === personName);
+                        if (exists) {
+                            if (classicKey !== currentClassic) {
+                                switchClassic(classicKey);
+                            }
+                            currentChapter = personName;
+                            saveCurrent();
+                            renderTree();
+                            renderRecords();
+                            showMsg(`跳转到: ${personName}`);
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        showMsg(`❌ 人物"${personName}"暂未创建，请先在目录中添加`);
+                    }
+                }
+            };
+            el._clickHandler = handler;
+            el.addEventListener('click', handler);
+        });
+    }, 100);
+
+    // 双链点击跳转 - 使用栈
+    setTimeout(() => {
+        document.querySelectorAll('.wikilink-text').forEach(el => {
+            if (el._clickHandler) {
+                el.removeEventListener('click', el._clickHandler);
+            }
+            const handler = (e) => {
+                e.stopPropagation();
+                const personName = el.dataset.person;
+                if (personName) {
+                    let returnStack = localStorage.getItem('return_stack');
+                    let stack = returnStack ? JSON.parse(returnStack) : [];
+                    stack.push({
+                        classic: currentClassic,
+                        chapter: currentChapter
+                    });
+                    if (stack.length > 20) stack.shift();
+                    localStorage.setItem('return_stack', JSON.stringify(stack));
+                    
+                    let found = false;
+                    for (const [classicKey, tree] of Object.entries(trees)) {
+                        const leaves = getAllLeafNodes(tree);
+                        const exists = leaves.find(l => l.name === personName);
+                        if (exists) {
+                            if (classicKey !== currentClassic) {
+                                switchClassic(classicKey);
+                            }
+                            currentChapter = personName;
+                            saveCurrent();
+                            renderTree();
+                            renderRecords();
+                            showMsg(`🔗 跳转到: ${personName}`);
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        showMsg(`❌ 人物"${personName}"暂未创建，请先在目录中添加`);
+                    }
+                }
+            };
+            el._clickHandler = handler;
+            el.addEventListener('click', handler);
+        });
+    }, 100);
+
+    if (!isClassic) {
+        document.querySelectorAll('.timeline-node').forEach(node => {
+            node.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const personName = node.dataset.person;
+                if (personName) {
+                    const leaves = getAllLeafNodes(getCurrentTree());
+                    const exists = leaves.find(l => l.name === personName);
+                    if (exists) {
+                        currentChapter = personName;
+                        saveCurrent();
+                        renderTree();
+                        renderRecords();
+                        showMsg(`切换到: ${personName}`);
+                    } else {
+                        showMsg(`人物"${personName}"暂未创建`);
+                    }
+                }
+            });
+        });
+    }
+
+    // 返回按钮 - 使用栈
+    setTimeout(() => {
+        const backBtn = document.getElementById('backToPrevBtn');
+        if (backBtn) {
+            if (backBtn._clickHandler) {
+                backBtn.removeEventListener('click', backBtn._clickHandler);
+            }
+            const handler = (e) => {
+                e.stopPropagation();
+                let returnStack = localStorage.getItem('return_stack');
+                let stack = returnStack ? JSON.parse(returnStack) : [];
+                
+                if (stack.length > 0) {
+                    const previous = stack.pop();
+                    localStorage.setItem('return_stack', JSON.stringify(stack));
+                    
+                    if (previous.classic !== currentClassic) {
+                        switchClassic(previous.classic);
+                    }
+                    currentChapter = previous.chapter;
+                    saveCurrent();
+                    renderTree();
+                    renderRecords();
+                    showMsg(`↩️ 返回: ${previous.chapter}`);
+                } else {
+                    showMsg('⚠️ 没有可返回的上一页');
+                }
+            };
+            backBtn._clickHandler = handler;
+            backBtn.addEventListener('click', handler);
+        }
+    }, 100);
+}
 
 function saveNote() {
     const now = new Date().toISOString();
@@ -3546,8 +3676,11 @@ function saveNote() {
             updatedAt: now
         };
         
-        console.log('保存的历史人物笔记:', noteData);
+
+   // 调用双向链接处理（函数定义在外面，不要在 saveNote 内部定义）
+        processBidirectionalLinks(noteData);
         
+        // 保存笔记（只保留这一份，删除重复的）
         if (editingId) {
             const idx = notes.findIndex(n => n.id === editingId);
             if (idx !== -1) notes[idx] = noteData;
@@ -3556,7 +3689,7 @@ function saveNote() {
             notes.push(noteData);
         }
     }
-    
+
     saveNotes();
     console.log('笔记已保存到 localStorage');
     console.log('当前所有笔记:', notes);
@@ -3565,6 +3698,95 @@ function saveNote() {
     closeModal('noteModal');
     showMsg('笔记已保存 ✓');
 }
+
+
+// ========== 双向链接处理函数 ==========
+   // ========== 双向链接处理函数（保存到对方的 relatedPersons） ==========
+function processBidirectionalLinks(currentNoteData) {
+    const isClassicMode = ['lunyu', 'shijing', 'tangshi', 'songci'].includes(currentClassic);
+    if (isClassicMode) return;
+    
+    const content = currentNoteData.content || '';
+    const linkRegex = /\[\[([^\]]+)\]\]/g;
+    let match;
+    const links = [];
+    
+    // 提取当前笔记中的所有双链
+    while ((match = linkRegex.exec(content)) !== null) {
+        let linkText = match[1];
+        let relation = '';
+        let personName = linkText;
+        
+        // 提取关系和姓名
+        const relationMatch = linkText.match(/^(.+?)[\s：:]+(.+)$/);
+        if (relationMatch) {
+            relation = relationMatch[1];
+            personName = relationMatch[2];
+        }
+        
+        if (personName && personName.trim()) {
+            links.push({
+                personName: personName.trim(),
+                relation: relation.trim()
+            });
+        }
+    }
+    
+    // 关系映射表（用于反向关系）
+    const relationMap = {
+        '朋友': '朋友', '老师': '学生', '学生': '老师',
+        '父亲': '儿子', '儿子': '父亲', '母亲': '儿子',
+        '哥哥': '弟弟', '弟弟': '哥哥', '师傅': '徒弟', '徒弟': '师傅'
+    };
+    
+    // 为每个链接的人物添加反向关系
+    for (const link of links) {
+        let targetNote = notes.find(n => n.classic === currentClassic && n.chapter === link.personName);
+        
+        if (!targetNote) {
+            // 如果对方笔记不存在，创建一个空笔记
+            targetNote = {
+                id: Date.now() + Math.random(),
+                classic: currentClassic,
+                chapter: link.personName,
+                lifespan: '',
+                content: '',
+                relatedPersons: [],
+                timeline: [],
+                relatedEvents: [],
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            notes.push(targetNote);
+        }
+        
+        // 确保 relatedPersons 存在
+        if (!targetNote.relatedPersons) targetNote.relatedPersons = [];
+        
+        // 计算反向关系
+        let reverseRelation = relationMap[link.relation] || link.relation;
+        
+        // 检查是否已经存在该反向关系
+        const alreadyExists = targetNote.relatedPersons.some(p => {
+            const pName = typeof p === 'string' ? p : p.name;
+            return pName === currentNoteData.chapter;
+        });
+        
+        if (!alreadyExists) {
+            targetNote.relatedPersons.push({
+                name: currentNoteData.chapter,
+                relation: reverseRelation
+            });
+            targetNote.updatedAt = new Date().toISOString();
+        }
+    }
+}
+  
+
+
+
+  
+    
 
 
 // 辅助渲染函数
@@ -3631,21 +3853,10 @@ function saveNote() {
         container.innerHTML = '<span style="color:#aeaeb2; padding:8px;">点击下方添加相关事件</span>';
     }
 }
-    function addRelatedPerson() {
-        const input = document.getElementById('relatedPersonInput');
-        const name = input.value.trim();
-        const relation = document.getElementById('relationTypeSelect')?.value || '其他';
-        if (!name) return;
-        if (currentRelatedPersons.some(p => (typeof p === 'string' ? p : p.name) === name)) {
-            showMsg('已存在');
-            input.value = '';
-            return;
-        }
-        currentRelatedPersons.push({ name, relation });
-        renderRelatedTags();
-        input.value = '';
-    }
-    
+   
+
+
+
     function addTimelineItem() {
         const input = document.getElementById('timelineInput');
         const name = input.value.trim();
@@ -3660,91 +3871,8 @@ function saveNote() {
         input.value = '';
     }
     
-    function addRelatedEvent() {
-    const input = document.getElementById('relatedEventInput');
-    const eventName = input.value.trim();
-    if (!eventName) return;
-    
-    if (currentRelatedEvents.includes(eventName)) {
-        showMsg(`"${eventName}" 已经添加过了`);
-        input.value = '';
-        return;
-    }
-    
-    // 添加到当前笔记的相关事件列表
-    currentRelatedEvents.push(eventName);
-    renderRelatedEvents();
-    
-    // ========== 自动在目录中创建事件 ==========
-    const currentTree = getCurrentTree();
-    
-    // 查找当前人物所属的朝代（根节点下的直接子节点）
-    function findDynasty(personName, tree, currentDynasty = null) {
-        for (let node of tree) {
-            if (node.name === personName) {
-                return currentDynasty;
-            }
-            if (node.children && node.children.length > 0) {
-                const found = findDynasty(personName, node.children, currentDynasty || node.name);
-                if (found) return found;
-            }
-        }
-        return null;
-    }
-    
-    // 查找朝代节点
-    function findDynastyNode(dynastyName, tree) {
-        for (let node of tree) {
-            if (node.name === dynastyName) {
-                return node;
-            }
-        }
-        return null;
-    }
-    
-    const dynastyName = findDynasty(currentChapter, currentTree);
-    console.log("当前人物所属朝代:", dynastyName);
-    
-    if (dynastyName) {
-        const dynastyNode = findDynastyNode(dynastyName, currentTree);
-        
-        if (dynastyNode) {
-            // 查找或创建"事件"分类
-            let eventsNode = null;
-            if (dynastyNode.children) {
-                eventsNode = dynastyNode.children.find(child => child.name === "事件");
-            }
-            
-            if (!eventsNode) {
-                // 创建"事件"分类
-                eventsNode = { id: genId(), name: "事件", children: [] };
-                if (!dynastyNode.children) dynastyNode.children = [];
-                dynastyNode.children.push(eventsNode);
-                // 排序：皇帝、名人、事件
-                dynastyNode.children.sort((a, b) => {
-                    const order = { '皇帝': 1, '名人': 2, '事件': 3 };
-                    return (order[a.name] || 99) - (order[b.name] || 99);
-                });
-            }
-            
-            // 检查事件是否已存在
-            if (!eventsNode.children.some(e => e.name === eventName)) {
-                eventsNode.children.push({ id: genId(), name: eventName, children: [] });
-                saveTrees();
-                renderTree();
-                showMsg(`✅ 已在“${dynastyName} / 事件”下添加“${eventName}”`);
-            } else {
-                showMsg(`事件“${eventName}”已存在于目录中`);
-            }
-        } else {
-            showMsg(`找不到朝代节点“${dynastyName}”`);
-        }
-    } else {
-        showMsg(`无法确定“${currentChapter}”所属的朝代`);
-    }
-    
-    input.value = '';
-}
+   
+   
     // 树形渲染
     function renderTree() {
         const container = document.getElementById('chaptersTreeContainer');
@@ -4361,9 +4489,19 @@ function renderModalForm() {
                 <div class="field-label">🌐 译文</div>
                 <div id="editorTranslation" class="quill-editor" style="height: 180px;"></div>
             </div>
+            <div class="field-group">
+            <div class="field-label">📎 相关人物（来自双链）</div>
+            <div id="modalRelatedPersonsContainer" style="padding: 12px; background: #f9f9fb; min-height: 50px; display: flex; flex-wrap: wrap; gap: 8px;">
+                <!-- 动态显示双链中的人物 -->
+            </div>
+            <div style="padding: 8px 12px; font-size: 12px; color: #8e8e93; background: #f9f9fb; border-top: 0.5px solid #e5e5ea;">
+                💡 在正文中使用 [[关系 人名]] 添加，如：[[作者 孔子]]
+            </div>
+        </div>
         `;
+    
     } else {
-        // 历史人物模式：生卒年 + 生平成就 + 相关事件 + 相关人物 + 时代线
+        // 历史人物模式：生卒年 + 生平成就 + 相关人物 + 时代线
         modalBody.innerHTML = `
             <div class="field-group">
                 <div class="field-label">📅 生卒年</div>
@@ -4384,37 +4522,17 @@ function renderModalForm() {
             <div class="field-group">
                 <div class="field-label">📝 生平与成就</div>
                 <div id="editorContent" class="quill-editor" style="height: 200px;"></div>
-            </div>
-            <div class="field-group">
-                <div class="field-label">📎 相关事件</div>
-                <div id="relatedEventsContainer" style="padding: 8px 12px; background: #f9f9fb; border-bottom: 0.5px solid #e5e5ea; display: flex; flex-wrap: wrap; gap: 6px; min-height: 42px;"></div>
-                <div style="padding: 8px 12px; display: flex; gap: 8px;">
-                    <input type="text" id="relatedEventInput" placeholder="输入事件名，如：玄武门之变" style="flex:2; padding: 8px 12px; border: 0.5px solid #e5e5ea; border-radius: 8px; font-size: 14px;">
-                    <button id="addRelatedEventBtn" style="background: #61A2DA; border: none; padding: 8px 16px; border-radius: 8px; color: white; cursor: pointer;">添加</button>
+                <div style="padding: 8px 12px; font-size: 12px; color: #8e8e93; background: #f9f9fb; border-top: 0.5px solid #e5e5ea;">
+                    💡 提示：选中文字后点击工具栏的🔗按钮，自动添加 [[关系 人名]] 双链
                 </div>
             </div>
             <div class="field-group">
-                <div class="field-label">👥 相关人物</div>
-                <div id="relatedPersonsContainer" style="padding: 8px 12px; background: #f9f9fb; border-bottom: 0.5px solid #e5e5ea; display: flex; flex-wrap: wrap; gap: 6px; min-height: 42px;"></div>
-                <div style="padding: 8px 12px; display: flex; gap: 8px; flex-wrap: wrap;">
-                    <select id="relationTypeSelect" style="padding: 8px 12px; border: 0.5px solid #e5e5ea; border-radius: 8px; font-size: 14px; background: white;">
-                        <option value="父亲">父亲</option>
-                        <option value="母亲">母亲</option>
-                        <option value="儿子">儿子</option>
-                        <option value="女儿">女儿</option>
-                        <option value="兄弟">兄弟</option>
-                        <option value="姐妹">姐妹</option>
-                        <option value="配偶">配偶</option>
-                        <option value="师傅">师傅</option>
-                        <option value="徒弟">徒弟</option>
-                        <option value="同僚">同僚</option>
-                        <option value="政敌">政敌</option>
-                        <option value="君主">君主</option>
-                        <option value="下属">下属</option>
-                        <option value="其他">其他</option>
-                    </select>
-                    <input type="text" id="relatedPersonInput" placeholder="输入人物名" style="flex:2; padding: 8px 12px; border: 0.5px solid #e5e5ea; border-radius: 8px; font-size: 14px;">
-                    <button id="addRelatedPersonBtn" style="background: #61A2DA; border: none; padding: 8px 16px; border-radius: 8px; color: white; cursor: pointer;">添加</button>
+                <div class="field-label">📎 相关人物（来自双链）</div>
+                <div id="modalRelatedPersonsContainer" style="padding: 12px; background: #f9f9fb; min-height: 50px; display: flex; flex-wrap: wrap; gap: 8px;">
+                    <!-- 动态显示双链中的人物 -->
+                </div>
+                <div style="padding: 8px 12px; font-size: 12px; color: #8e8e93; background: #f9f9fb; border-top: 0.5px solid #e5e5ea;">
+                    💡 在正文中使用 [[关系 人名]] 添加，如：[[儿子 启]]
                 </div>
             </div>
             <div class="field-group">
@@ -4430,25 +4548,107 @@ function renderModalForm() {
             </div>
         `;
     }
+
+
 }
 
 
 
-
-
+function updateModalRelatedPersons() {
+    const container = document.getElementById('modalRelatedPersonsContainer');
+    if (!container) return;
+    
+    const relatedPersonsSet = new Set();
+    
+    // 从所有编辑器中提取双链（同时支持经典文献和历史人物模式）
+    const editors = [
+        window.quillOriginal,
+        window.quillNotes,
+        window.quillSupplement,
+        window.quillTranslation,
+        window.quillContent
+    ];
+    
+    let hasContent = false;
+    editors.forEach(editor => {
+        if (editor && editor.root) {
+            hasContent = true;
+            const content = editor.root.innerHTML;
+            const linkRegex = /\[\[([^\]]+)\]\]/g;
+            let match;
+            while ((match = linkRegex.exec(content)) !== null) {
+                let linkText = match[1];
+                let personName = linkText;
+                
+                // 尝试提取关系和人名（支持：关系 人名、关系：人名、关系:人名）
+                const relationMatch = linkText.match(/^(.+?)[\s：:](.+)$/);
+                if (relationMatch) {
+                    personName = relationMatch[2];
+                }
+                
+                if (personName && personName.trim()) {
+                    relatedPersonsSet.add(personName.trim());
+                }
+            }
+        }
+    });
+    
+    if (relatedPersonsSet.size > 0) {
+        let html = '';
+        relatedPersonsSet.forEach(personName => {
+            html += `<span style="display:inline-flex; background:#e9e9ef; padding:6px 14px; border-radius:20px; font-size:13px; color:#61A2DA;">${escapeHtml(personName)}</span>`;
+        });
+        container.innerHTML = html;
+    } else {
+        container.innerHTML = '<span style="color: #aeaeb2; font-size: 13px;">暂无，在正文中使用 [[关系 人名]] 添加</span>';
+    }
+}
 
 const toolbarOptions = [
-    [{ 'size': ['small',false, 'large', 'huge'] }],  // 小、正常、大、巨大
+    [{ 'size': ['small', false, 'large', 'huge'] }],
     ['bold', 'italic', 'underline'],
     [{ 'list': 'ordered' }, { 'list': 'bullet' }],
     [{ 'indent': '-1' }, { 'indent': '+1' }],
     [{ 'color': ['#f1c40f', '#e67e22', '#e74c3c', '#3498db'] }],
-    ['clean']
+    ['clean'],
+    ['link']  // 添加链接按钮（后面会覆盖成双链功能）
 ];
-
 
 function initEditors() {
     const isClassic = ['lunyu', 'shijing', 'tangshi', 'songci'].includes(currentClassic);
+    
+    // 自定义双链按钮的处理函数
+    const wikilinkHandler = function() {
+        const range = this.quill.getSelection();
+        if (range && range.length > 0) {
+            // 有选中文字
+            const text = this.quill.getText(range.index, range.length);
+            // 删除选中的文字
+            this.quill.deleteText(range.index, range.length);
+            // 插入 [[选中的文字]]
+            this.quill.insertText(range.index, `[[${text}]]`);
+            // 设置光标位置
+            this.quill.setSelection(range.index + text.length + 4, 0);
+        } else {
+            // 没有选中文字，直接插入 [[]]，光标放在中间
+            const cursorPos = this.quill.getLength();
+            this.quill.insertText(cursorPos, '[[]]');
+            this.quill.setSelection(cursorPos + 2, 0);
+        }
+        // 手动触发更新
+        setTimeout(() => updateModalRelatedPersons(), 50);
+    };
+    
+    // 自定义工具栏配置（覆盖 link 按钮的行为）
+    const customToolbarOptions = [
+        [{ 'size': ['small', false, 'large', 'huge'] }],
+        ['bold', 'italic', 'underline'],
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+        [{ 'indent': '-1' }, { 'indent': '+1' }],
+        [{ 'color': ['#f1c40f', '#e67e22', '#e74c3c', '#3498db'] }],
+        ['clean'],
+        ['link']  // 使用 Quill 自带的 link 按钮，但覆盖它的行为
+    ];
     
     if (isClassic) {
         destroyEditors();
@@ -4457,59 +4657,143 @@ function initEditors() {
         if (originalEl && !window.quillOriginal) {
             window.quillOriginal = new Quill('#editorOriginal', { 
                 theme: 'snow', 
-                modules: { toolbar: toolbarOptions },
-                placeholder: '输入原文...'
+                modules: { 
+                    toolbar: {
+                        container: customToolbarOptions,
+                        handlers: {
+                            'link': wikilinkHandler
+                        }
+                    }
+                },
+                placeholder: '输入原文...\n\n💡 提示：选中文字后点击工具栏的🔗按钮，自动添加[[]]双链'
             });
-            // 强制左对齐
             window.quillOriginal.format('align', 'left');
             window.quillOriginal.root.style.textAlign = 'left';
+            // 添加内容变化监听
+            window.quillOriginal.on('text-change', function() {
+                updateModalRelatedPersons();
+            });
         }
         
         const notesEl = document.getElementById('editorNotes');
         if (notesEl && !window.quillNotes) {
             window.quillNotes = new Quill('#editorNotes', { 
                 theme: 'snow', 
-                modules: { toolbar: toolbarOptions },
-                placeholder: '输入注释...'
+                modules: { 
+                    toolbar: {
+                        container: customToolbarOptions,
+                        handlers: {
+                            'link': wikilinkHandler
+                        }
+                    }
+                },
+                placeholder: '输入注释...\n\n💡 提示：选中文字后点击工具栏的🔗按钮，自动添加[[]]双链'
             });
             window.quillNotes.format('align', 'left');
             window.quillNotes.root.style.textAlign = 'left';
+            // 添加内容变化监听
+            window.quillNotes.on('text-change', function() {
+                updateModalRelatedPersons();
+            });
         }
         
         const supplementEl = document.getElementById('editorSupplement');
         if (supplementEl && !window.quillSupplement) {
             window.quillSupplement = new Quill('#editorSupplement', { 
                 theme: 'snow', 
-                modules: { toolbar: toolbarOptions },
-                placeholder: '补充背景、评价等...'
+                modules: { 
+                    toolbar: {
+                        container: customToolbarOptions,
+                        handlers: {
+                            'link': wikilinkHandler
+                        }
+                    }
+                },
+                placeholder: '补充背景、评价等...\n\n💡 提示：选中文字后点击工具栏的🔗按钮，自动添加[[]]双链'
             });
             window.quillSupplement.format('align', 'left');
             window.quillSupplement.root.style.textAlign = 'left';
+            // 添加内容变化监听
+            window.quillSupplement.on('text-change', function() {
+                updateModalRelatedPersons();
+            });
         }
         
         const translationEl = document.getElementById('editorTranslation');
         if (translationEl && !window.quillTranslation) {
             window.quillTranslation = new Quill('#editorTranslation', { 
                 theme: 'snow', 
-                modules: { toolbar: toolbarOptions },
-                placeholder: '输入译文...'
+                modules: { 
+                    toolbar: {
+                        container: customToolbarOptions,
+                        handlers: {
+                            'link': wikilinkHandler
+                        }
+                    }
+                },
+                placeholder: '输入译文...\n\n💡 提示：选中文字后点击工具栏的🔗按钮，自动添加[[]]双链'
             });
             window.quillTranslation.format('align', 'left');
             window.quillTranslation.root.style.textAlign = 'left';
+            // 添加内容变化监听
+            window.quillTranslation.on('text-change', function() {
+                updateModalRelatedPersons();
+            });
         }
+        
+        // 初始加载时调用一次
+        setTimeout(() => {
+            updateModalRelatedPersons();
+        }, 100);
+        
     } else {
         if (document.getElementById('editorContent') && !window.quillContent) {
             window.quillContent = new Quill('#editorContent', { 
                 theme: 'snow', 
-                modules: { toolbar: toolbarOptions },
-                placeholder: '输入生平与成就...'
+                modules: { 
+                    toolbar: {
+                        container: customToolbarOptions,
+                        handlers: {
+                            'link': wikilinkHandler
+                        }
+                    }
+                },
+                placeholder: '输入生平与成就...\n\n💡 提示：选中文字后点击工具栏的🔗按钮，自动添加[[]]双链'
             });
             window.quillContent.format('align', 'left');
             window.quillContent.root.style.textAlign = 'left';
+            
+            // 添加内容变化监听
+            window.quillContent.on('text-change', function() {
+                updateModalRelatedPersons();
+            });
+            
+            // 初始加载时调用一次
+            setTimeout(() => {
+                updateModalRelatedPersons();
+            }, 100);
+            
+            // 添加快捷键 Ctrl+L (可选)
+            const editorRoot = window.quillContent.root;
+            editorRoot.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
+                    e.preventDefault();
+                    const range = window.quillContent.getSelection();
+                    if (range && range.length > 0) {
+                        const text = window.quillContent.getText(range.index, range.length);
+                        window.quillContent.deleteText(range.index, range.length);
+                        window.quillContent.insertText(range.index, `[[${text}]]`);
+                        window.quillContent.setSelection(range.index + text.length + 4, 0);
+                    } else {
+                        const cursorPos = window.quillContent.getLength();
+                        window.quillContent.insertText(cursorPos, '[[]]');
+                        window.quillContent.setSelection(cursorPos + 2, 0);
+                    }
+                }
+            });
         }
     }
 }
-
 
 
 // 销毁编辑器（关闭模态窗时可选调用，避免重复初始化）
@@ -5000,27 +5284,12 @@ function bindEvents() {
     const modalConfirmBtn = document.getElementById('modalConfirmBtn');
     if (modalConfirmBtn) modalConfirmBtn.addEventListener('click', saveNote);
 
-    // 相关人物按钮
-    const addRelatedPersonBtn = document.getElementById('addRelatedPersonBtn');
-    if (addRelatedPersonBtn) addRelatedPersonBtn.addEventListener('click', addRelatedPerson);
-
+  
     // 时代线按钮
     const addTimelineBtn = document.getElementById('addTimelineBtn');
     if (addTimelineBtn) addTimelineBtn.addEventListener('click', addTimelineItem);
 
-    // 相关事件按钮
-    const addRelatedEventBtn = document.getElementById('addRelatedEventBtn');
-    if (addRelatedEventBtn) addRelatedEventBtn.addEventListener('click', addRelatedEvent);
-
-    // 输入框回车事件
-    const relatedPersonInput = document.getElementById('relatedPersonInput');
-    if (relatedPersonInput) relatedPersonInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addRelatedPerson(); });
-    
-    const timelineInput = document.getElementById('timelineInput');
-    if (timelineInput) timelineInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addTimelineItem(); });
-    
-    const relatedEventInput = document.getElementById('relatedEventInput');
-    if (relatedEventInput) relatedEventInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addRelatedEvent(); });
+   
 
     // 分类切换按钮
     document.querySelectorAll('.classic-btn').forEach(btn => btn.addEventListener('click', () => switchClassic(btn.dataset.classic)));
@@ -5225,6 +5494,11 @@ function loadGistSettings() {
     }
     
     function init() { 
+
+// ✅ 页面加载时清除残留的返回历史记录，避免按钮无故显示
+    localStorage.removeItem('return_classic');
+    localStorage.removeItem('return_chapter');
+
         loadTrees(); 
         loadNotes(); 
 bindCustomInputEvents(); 
