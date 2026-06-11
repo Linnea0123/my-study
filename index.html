@@ -60,32 +60,34 @@
             letter-spacing: -0.3px;
         }
 
-        .classic-tabs {
-            display: flex;
-            gap: 4px;
-            background: #e5e5ea;
-            padding: 3px;
-            border-radius: 10px;
-        }
+  .classic-tabs {
+    display: flex;
+    gap: 8px;
+    background: transparent;     /* 完全透明，无背景 */
+    padding: 0;
+    border-radius: 0;
+    flex-wrap: wrap;
+    margin: 0 24px 12px 24px !important;
+}
 
         .classic-btn {
-            padding: 6px 14px;
-            font-size: 13px;
-            font-weight: 500;
-            border-radius: 8px;
-            cursor: pointer;
-            background: transparent;
-            border: none;
-            font-family: inherit;
-            color: #3a3a44;
-            transition: all 0.2s;
-        }
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 20px;         /* 圆角更大，像独立标签 */
+    cursor: pointer;
+    background: #f2f2f6;         /* 默认灰色背景 */
+    border: none;
+    font-family: inherit;
+    color: #3a3a44;
+    transition: all 0.2s;
+}
 
         .classic-btn.active {
-            background: #ffffff;
-            color: #61A2DA;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-        }
+    background: #61A2DA;         /* 激活时变成蓝色背景 */
+    color: white;
+    box-shadow: none;
+}
 
         .header-actions {
             display: flex;
@@ -122,16 +124,16 @@
     min-width: 260px;
     background: #ffffff;
     border-right: 0.5px solid #e5e5ea;
-    padding: 20px 16px 24px;
+    padding: 20px 16px 24px 4px;   /* 左边距从 16px 改为 4px，更靠左 */
     display: flex;
-    flex-direction: column;  /* 让内部元素垂直排列 */
+    flex-direction: column;
 }
 
 .chapters-tree {
     flex: 1;
     overflow-y: auto;
     background: transparent;
-    margin-left: 0;      /* 添加 */
+    margin-left: -20px;      /* 添加 */
     padding-left: 0;     /* 添加 */
 }
 
@@ -158,6 +160,7 @@
     font-weight: 500;
     padding: 10px 12px 10px 0px;   /* 左边距改为 0 */
     margin: 2px 0;
+    
     background: transparent;
     cursor: pointer;
     display: flex;
@@ -170,7 +173,7 @@
             font-size: 14px;
             font-weight: 450;
             padding: 8px 12px;
-            margin-left: 16px;
+            margin-left: 30px !important;  
             background: transparent;
             cursor: pointer;
             display: flex;
@@ -183,7 +186,7 @@
             font-size: 14px;
             font-weight: 400;
             padding: 8px 12px;
-            margin-left: 50px;
+            margin-left: 50px !important;  
             background: transparent;
             cursor: pointer;
             display: flex;
@@ -192,6 +195,18 @@
             border-radius: 8px;
         }
 
+        .level-4 {
+            font-size: 14px;
+            font-weight: 400;
+            padding: 8px 12px;
+            margin-left: 70px !important;  
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 8px;
+        }
         .level-1:hover, .level-2:hover, .level-3:hover {
             background: #f2f2f6;
         }
@@ -480,20 +495,25 @@
             text-align: center;
         }
 
-        @media (max-width: 700px) {
-            body { padding: 12px; }
+        @media (max-width: 768px) {
+            body { padding: 12px; padding: 0 !important;  }
             .header { flex-direction: column; align-items: stretch; }
             .header-left { justify-content: space-between; }
             .two-columns { flex-direction: column; }
-.sidebar {
-    flex: 0.5;
-    min-width: 260px;
-    background: #ffffff;
-    border-right: 0.5px solid #e5e5ea;
-    padding: 20px 16px 24px 0px;   /* 左边距改为 0 */
-    display: flex;
-    flex-direction: column;
-}
+ .sidebar {
+        position: fixed;
+        top: 0;
+        left: -280px;           /* 改为 -280px，完全移出屏幕 */
+        width: 280px;           /* 宽度改为 280px */
+        height: 100%;
+        z-index: 999;
+        background: #ffffff;
+        transition: left 0.3s ease;
+        box-shadow: none;       /* 关闭时不要阴影 */
+        border-right: none;
+        padding-top: 60px;
+    }
+    
         }
 
 
@@ -548,6 +568,38 @@
     text-align: left !important;
 }
 
+
+@media (max-width: 768px) {
+    /* 强制去掉所有容器的圆角和阴影 */
+    .app-container {
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        overflow-x: hidden !important;
+    }
+    
+    /* 主内容区不要有左边距 */
+    .main-content {
+        margin-left: 0 !important;
+        padding-left: 16px !important;
+        background: #f9f9fb;
+    }
+    
+    /* 侧边栏关闭时完全不可见 */
+    .sidebar {
+        left: -100% !important;
+        transition: left 0.3s ease;
+    }
+    
+    .sidebar.open {
+        left: 0 !important;
+    }
+    
+    /* body 背景白色 */
+    body {
+        background: #ffffff !important;
+        overflow-x: hidden !important;
+    }
+}
 /* 确保编辑器容器也是左对齐 */
 .quill-editor {
     text-align: left;
@@ -1274,58 +1326,302 @@ body {
     }
 }
 
+
+/* 有内容的目录 - 文字变蓝色 */
+.level-1.has-content .node-title,
+.level-2.has-content .node-title,
+.level-3.has-content .node-title {
+    color: #61A2DA;
+}
+
+/* 保持当前激活章节的样式优先级更高 */
+.level-1.active-chapter .node-title,
+.level-2.active-chapter .node-title,
+.level-3.active-chapter .node-title {
+    color: #61A2DA;
+    font-weight: 500;
+}
+
+
+/* 有内容的目录 - 文字变蓝色 */
+.level-1.has-content .node-title,
+.level-2.has-content .node-title,
+.level-3.has-content .node-title {
+    color: #61A2DA;
+}
+
+/* 当前激活章节 */
+.level-1.active-chapter .node-title,
+.level-2.active-chapter .node-title,
+.level-3.active-chapter .node-title {
+    color: #61A2DA;
+    font-weight: 500;
+}
+
+/* 加号按钮样式 - 电脑端半透明 */
+.tree-add-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 300 !important;  /* 细体 */
+    font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif;
+}
+
+/* 电脑端悬停效果 */
+@media (min-width: 769px) {
+    .tree-add-btn {
+        opacity: 0.5;
+    }
+    
+}
+
+/* 手机端适配 */
+@media (max-width: 768px) {
+    /* 去掉 chapters-tree 的负边距 */
+    .chapters-tree {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding-left: 0 !important;
+    }
+    
+    /* 一级目录靠左：用内边距代替负边距 */
+    .level-1 {
+        padding: 10px 12px 10px 8px !important;
+        margin-left: 0 !important;
+    }
+    
+    .level-2 {
+        margin-left: 20px !important;
+    }
+    
+    .level-3 {
+        margin-left: 40px !important;
+    }
+    
+    /* 侧边栏样式保持不变 */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: -260px;
+        width: 260px;
+        height: 100%;
+        z-index: 999;
+        background: #ffffff;
+        transition: left 0.3s ease;
+        box-shadow: 2px 0 12px rgba(0,0,0,0.1);
+        border-right: none;
+        padding-top: 60px;
+    }
+    
+    .sidebar.open {
+        left: 0;
+    }
+    
+    /* 侧边栏打开时也不要有负边距 */
+    .sidebar.open .chapters-tree {
+        margin-left: 0 !important;
+    }
+}
+
+
+
+/* 手机端加大触摸区域 */
+@media (max-width: 768px) {
+    .tree-add-btn {
+        font-size: 18px !important;
+        width: 36px !important;
+        height: 36px !important;
+        margin-left: 4px !important;
+        opacity: 1 !important;
+    }
+    .tree-add-btn:active {
+        background: #e9e9ef;
+    }
+}
+
+
+@media (max-width: 768px) {
+    /* 重新排列手机端 header */
+    .header {
+        display: flex;
+        flex-direction: column;
+        padding: 12px 0 0 0;
+    }
+    
+    /* 第一行：标题居中 */
+    .header h1 {
+        text-align: center;
+        margin: 0 0 8px 0 !important;
+        font-size: 20px;
+        order: 1;
+    }
+    
+    /* 第二行：菜单按钮在左，设置按钮在右 */
+    .header > div:first-child > div:first-child {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 16px 8px 16px !important;
+        order: 2;
+    }
+    
+    /* 菜单按钮 */
+    .menu-toggle {
+        display: inline-flex !important;
+    }
+    
+    /* 右侧按钮组 */
+    .header-actions {
+        display: flex;
+        gap: 8px;
+    }
+    
+    /* 分类标签区域 */
+    .classic-tabs {
+        margin: 8px 16px 12px 16px !important;
+    }
+}
+
+/* 桌面端显示 desktop-header，隐藏 mobile-header */
+.desktop-header {
+    display: flex !important;
+}
+
+.mobile-header {
+    display: none !important;
+    
+}
+
+/* 手机端 */
+@media (max-width: 768px) {
+    .desktop-header {
+        display: none !important;
+    }
+    
+    .mobile-header {
+        display: block !important;
+    }
+    
+    .mobile-title-row {
+        text-align: center !important;
+        padding: 8px 0 0 0;
+        width: 100%;
+    }
+    
+    .mobile-title-row h1 {
+        margin: 0 auto !important;
+        font-size: 20px;
+        text-align: center !important;
+        display: block;
+    }
+    
+    .mobile-actions-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 16px 12px 16px;
+    }
+    
+    .classic-tabs {
+        margin: 0 16px 12px 16px !important;
+    }
+}
+
     </style>
 </head>
 <body>
 <div class="app-container">
     
 
-    <div class="header">
-    <!-- 第一行：标题 + 右侧按钮 -->
-    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 24px;">
+
+<div class="header">
+    <!-- 手机端专用布局（手机端显示，桌面端隐藏） -->
+    <div class="mobile-header" style="display: none;">
+        <div class="mobile-title-row">
+            <h1>学习录</h1>
+        </div>
+        <div class="mobile-actions-row">
+            <button id="menuToggleBtn" class="menu-toggle" style="background: none; border: none; font-size: 24px; cursor: pointer;">☰</button>
+            <div class="header-actions">
+                <button id="searchBtn" class="icon-btn" title="搜索全部内容" style="background: none; border: none; cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+                    <svg width="20" height="20" viewBox="0 0 250.313 250.313" fill="none" stroke="#5a5a5f" stroke-width="8" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M244.186,214.604l-54.379-54.378c-0.289-0.289-0.628-0.491-0.93-0.76c10.7-16.231,16.945-35.66,16.945-56.554C205.822,46.075,159.747,0,102.911,0S0,46.075,0,102.911c0,56.835,46.074,102.911,102.91,102.911c20.895,0,40.323-6.245,56.554-16.945c0.269,0.301,0.47,0.64,0.759,0.929l54.38,54.38c8.169,8.168,21.413,8.168,29.583,0C252.354,236.017,252.354,222.773,244.186,214.604z M102.911,170.146c-37.134,0-67.236-30.102-67.236-67.235c0-37.134,30.103-67.236,67.236-67.236c37.132,0,67.235,30.103,67.235,67.236C170.146,140.044,140.043,170.146,102.911,170.146z"/>
+                    </svg>
+                </button>
+                <button id="editTagsBtn" class="icon-btn" title="编辑分类标签" style="background: none; border: none; cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+                    <svg width="20" height="20" viewBox="0 0 100 100" fill="none" stroke="#5a5a5f" stroke-width="4" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M83.1218 38H23.5988C19.8221 38 16.5599 40.6412 15.7739 44.3351L9.17817 75.3351C8.11924 80.3121 11.9146 85 17.003 85H76.6449C80.4215 85 83.6838 82.3588 84.4697 78.6649L91.0655 47.6649C92.1244 42.6879 88.329 38 83.2406 38H83.1218Z"/>
+                        <path d="M83.1218 38V37C83.1218 32.5817 79.5401 29 75.1218 29H59.8322C57.479 29 55.2452 27.9639 53.7251 26.1675L47.5185 18.8325C45.9985 17.0361 43.7646 16 41.4114 16H17.1218C12.7035 16 9.12182 19.5817 9.12182 24V75"/>
+                    </svg>
+                </button>
+                <button id="editCatalogBtn" class="icon-btn" title="编辑目录" style="background: none; border: none; cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
+                </button>
+                <button id="headerSaveToGistBtn" class="icon-btn" title="上传到Gist" style="background: none; border: none; cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+                    <svg width="22" height="22" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M23.995,13.089C23.996,13.059,24,13.03,24,13c0-4.418-3.582-8-8-8c-3.814,0-6.998,2.671-7.8,6.242C5.208,12.038,3,14.757,3,18c0,3.866,3.134,7,7,7h13c3.314,0,6-2.686,6-6C29,16.026,26.834,13.564,23.995,13.089z"/>
+                        <line x1="16" y1="11" x2="16" y2="21"/>
+                        <polyline points="12,15 16,11 20,15"/>
+                    </svg>
+                </button>
+                <button id="headerLoadFromGistBtn" class="icon-btn" title="从Gist恢复" style="background: none; border: none; cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+                    <svg width="22" height="22" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M23.995,13.089C23.996,13.059,24,13.03,24,13c0-4.418-3.582-8-8-8c-3.814,0-6.998,2.671-7.8,6.242C5.208,12.038,3,14.757,3,18c0,3.866,3.134,7,7,7h13c3.314,0,6-2.686,6-6C29,16.026,26.834,13.564,23.995,13.089z"/>
+                        <line x1="16" y1="21" x2="16" y2="11"/>
+                        <polyline points="12,17 16,21 20,17"/>
+                    </svg>
+                </button>
+                <button id="settingsBtn" class="icon-btn" title="设置" style="background: none; border: none; cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+                    <svg width="17" height="17" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 桌面端专用布局（桌面端显示，手机端隐藏） -->
+    <div class="desktop-header" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 24px;">
         <div style="display: flex; align-items: center; gap: 12px;">
-            <button id="menuToggleBtn" class="menu-toggle" title="菜单" style="background: none; border: none; font-size: 24px; cursor: pointer;">☰</button>
             <h1 style="margin: 0; font-size: 22px; font-weight: 600;">学习录</h1>
         </div>
-        <div class="header-actions" style="display: flex; gap: 8px; align-items: center;">
-            <!-- 搜索按钮 -->
-            <button id="searchBtn" class="icon-btn" title="搜索全部内容" style="background: none; border: none; cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+        <div class="header-actions">
+            <button id="searchBtnDesktop" class="icon-btn" title="搜索全部内容" style="background: none; border: none; cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
                 <svg width="20" height="20" viewBox="0 0 250.313 250.313" fill="none" stroke="#5a5a5f" stroke-width="8" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
                     <path d="M244.186,214.604l-54.379-54.378c-0.289-0.289-0.628-0.491-0.93-0.76c10.7-16.231,16.945-35.66,16.945-56.554C205.822,46.075,159.747,0,102.911,0S0,46.075,0,102.911c0,56.835,46.074,102.911,102.91,102.911c20.895,0,40.323-6.245,56.554-16.945c0.269,0.301,0.47,0.64,0.759,0.929l54.38,54.38c8.169,8.168,21.413,8.168,29.583,0C252.354,236.017,252.354,222.773,244.186,214.604z M102.911,170.146c-37.134,0-67.236-30.102-67.236-67.235c0-37.134,30.103-67.236,67.236-67.236c37.132,0,67.235,30.103,67.235,67.236C170.146,140.044,140.043,170.146,102.911,170.146z"/>
                 </svg>
             </button>
-            <!-- 编辑标签按钮 -->
-            <button id="editTagsBtn" class="icon-btn" title="编辑分类标签" style="background: none; border: none; cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+            <button id="editTagsBtnDesktop" class="icon-btn" title="编辑分类标签" style="background: none; border: none; cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
                 <svg width="20" height="20" viewBox="0 0 100 100" fill="none" stroke="#5a5a5f" stroke-width="4" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
                     <path d="M83.1218 38H23.5988C19.8221 38 16.5599 40.6412 15.7739 44.3351L9.17817 75.3351C8.11924 80.3121 11.9146 85 17.003 85H76.6449C80.4215 85 83.6838 82.3588 84.4697 78.6649L91.0655 47.6649C92.1244 42.6879 88.329 38 83.2406 38H83.1218Z"/>
                     <path d="M83.1218 38V37C83.1218 32.5817 79.5401 29 75.1218 29H59.8322C57.479 29 55.2452 27.9639 53.7251 26.1675L47.5185 18.8325C45.9985 17.0361 43.7646 16 41.4114 16H17.1218C12.7035 16 9.12182 19.5817 9.12182 24V75"/>
                 </svg>
             </button>
-            <!-- 编辑目录按钮 -->
-            <button id="editCatalogBtn" class="icon-btn" title="编辑目录" style="background: none; border: none; cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+            <button id="editCatalogBtnDesktop" class="icon-btn" title="编辑目录" style="background: none; border: none; cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
                 <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                 </svg>
             </button>
-            <!-- 上传按钮 -->
-            <button id="headerSaveToGistBtn" class="icon-btn" title="上传到Gist" style="background: none; border: none; cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+            <button id="headerSaveToGistBtnDesktop" class="icon-btn" title="上传到Gist" style="background: none; border: none; cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
                 <svg width="22" height="22" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M23.995,13.089C23.996,13.059,24,13.03,24,13c0-4.418-3.582-8-8-8c-3.814,0-6.998,2.671-7.8,6.242C5.208,12.038,3,14.757,3,18c0,3.866,3.134,7,7,7h13c3.314,0,6-2.686,6-6C29,16.026,26.834,13.564,23.995,13.089z"/>
                     <line x1="16" y1="11" x2="16" y2="21"/>
                     <polyline points="12,15 16,11 20,15"/>
                 </svg>
             </button>
-            <!-- 恢复按钮 -->
-            <button id="headerLoadFromGistBtn" class="icon-btn" title="从Gist恢复" style="background: none; border: none; cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+            <button id="headerLoadFromGistBtnDesktop" class="icon-btn" title="从Gist恢复" style="background: none; border: none; cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
                 <svg width="22" height="22" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M23.995,13.089C23.996,13.059,24,13.03,24,13c0-4.418-3.582-8-8-8c-3.814,0-6.998,2.671-7.8,6.242C5.208,12.038,3,14.757,3,18c0,3.866,3.134,7,7,7h13c3.314,0,6-2.686,6-6C29,16.026,26.834,13.564,23.995,13.089z"/>
                     <line x1="16" y1="21" x2="16" y2="11"/>
                     <polyline points="12,17 16,21 20,17"/>
                 </svg>
             </button>
-            <!-- 设置按钮 -->
-            <button id="settingsBtn" class="icon-btn" title="设置" style="background: none; border: none; cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+            <button id="settingsBtnDesktop" class="icon-btn" title="设置" style="background: none; border: none; cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
                 <svg width="17" height="17" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="3"/>
                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
@@ -1333,17 +1629,19 @@ body {
             </button>
         </div>
     </div>
-    <!-- 第二行：分类标签（在标题下方独立一行） -->
-    <div class="classic-tabs" id="classicTabsContainer" style="margin: 0 24px 12px 24px; display: flex; gap: 4px; background: #e5e5ea; padding: 3px; border-radius: 10px; flex-wrap: wrap;">
+    
+    <!-- 第三行：分类标签 -->
+    <div class="classic-tabs" id="classicTabsContainer" style="margin: 0 24px 12px 24px; display: flex; gap: 8px; padding: 0; flex-wrap: wrap;">
         <button class="classic-btn" data-classic="china">中国历史</button>
         <button class="classic-btn" data-classic="world">世界历史</button>
         <button class="classic-btn" data-classic="lunyu">论语</button>
         <button class="classic-btn" data-classic="shijing">诗经</button>
         <button class="classic-btn" data-classic="tangshi">唐诗</button>
         <button class="classic-btn" data-classic="songci">宋词</button>
-        <button class="classic-btn" data-classic="songci" style="padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: 8px; cursor: pointer; background: transparent; border: none; font-family: inherit; color: #3a3a44; transition: all 0.2s;">宋词</button>
     </div>
 </div>
+
+    
     <div class="two-columns">
         <div class="sidebar">
             <div class="chapters-tree" id="chaptersTreeContainer"></div>
@@ -1476,7 +1774,22 @@ body {
         </div>
     </div>
 </div>
-
+<!-- 自定义输入模态窗 -->
+<div id="customInputModal" class="modal-mask">
+    <div class="modal-container" style="max-width: 400px;">
+        <div class="modal-header">
+            <h3 id="customInputTitle">添加子目录</h3>
+            <button class="close-modal" id="closeCustomInputBtn">&times;</button>
+        </div>
+        <div class="modal-body" style="padding: 20px;">
+            <input type="text" id="customInputValue" placeholder="请输入名称" style="width: 100%; padding: 12px; border: 0.5px solid #e5e5ea; border-radius: 8px; font-size: 16px; margin-bottom: 20px;">
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button id="customInputCancelBtn" class="btn-cancel">取消</button>
+                <button id="customInputConfirmBtn" class="btn-confirm">确定</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
     
@@ -3797,12 +4110,8 @@ function renderCatalogTree(resetCollapsed = false) {
     currentTree.forEach(node => renderNode(node, 0));
 }
 
-
-
-
-
 function renderNode(parentEl, node, level) {
-     const div = document.createElement('div');
+    const div = document.createElement('div');
     div.className = 'tree-node';
     const hasChildren = node.children && node.children.length > 0;
     const header = document.createElement('div');
@@ -3813,8 +4122,11 @@ function renderNode(parentEl, node, level) {
     // 检查当前节点是否有笔记内容
     const hasContent = checkNodeHasContent(node.name);
     
-    // 右侧显示圆点（如果有内容）
-const rightDot = hasContent ? `<span style="width: 6px; height: 6px; background: #61A2DA; border-radius: 50%; display: inline-block; margin-left: 0px; flex-shrink: 0;"></span>` : '';    // 箭头和文字 - 去掉左边多余空白
+    // 如果有内容，添加一个特殊类名，用于变色
+    if (hasContent) {
+        header.classList.add('has-content');
+    }
+    
     let chevronHtml = '';
     if (hasChildren) {
         chevronHtml = `<span class="chevron" style="margin-right: 4px; margin-left: 0; width: 18px; display: inline-block; text-align: center; flex-shrink: 0;">›</span>`;
@@ -3822,7 +4134,41 @@ const rightDot = hasContent ? `<span style="width: 6px; height: 6px; background:
         chevronHtml = `<span style="width: 18px; display: inline-block; flex-shrink: 0;"></span>`;
     }
     
-    header.innerHTML = `<div style="display:flex; align-items:center; flex:1; min-width:0;">${chevronHtml}<span class="node-title" style="flex:1; word-break: break-word;">${escapeHtml(node.name)}</span></div><div style="display:flex; align-items:center; flex-shrink: 0;">${rightDot}</div>`;
+    // 加号按钮 - 默认隐藏，电脑端悬停显示
+    const addBtnHtml = `<span class="tree-add-btn" data-node-id="${node.id}" style="cursor: pointer; margin-left: 8px; font-size: 14px; color: #61A2DA; font-weight: bold;">+</span>`;
+    
+    header.innerHTML = `<div style="display:flex; align-items:center; flex:1; min-width:0;">${chevronHtml}<span class="node-title" style="flex:1; word-break: break-word;">${escapeHtml(node.name)}</span>${addBtnHtml}</div><div style="display:flex; align-items:center; flex-shrink: 0;"></div>`;
+    
+    // 获取加号按钮
+    const addBtn = header.querySelector('.tree-add-btn');
+    
+    
+    
+    // 检查是否为电脑端（宽度大于768px）
+    const isDesktop = window.innerWidth > 768;
+    
+    if (isDesktop) {
+        // 电脑端：默认隐藏，悬停在整个目录行上时显示
+        addBtn.style.opacity = '0';
+        addBtn.style.transition = 'opacity 0.2s';
+        
+        header.addEventListener('mouseenter', () => {
+            addBtn.style.opacity = '1';
+        });
+        header.addEventListener('mouseleave', () => {
+            addBtn.style.opacity = '0';
+        });
+    } else {
+        // 手机端：显示小加号，不隐藏
+        addBtn.style.opacity = '1';
+        addBtn.style.fontSize = '12px';  // 小一点
+        addBtn.style.width = '24px';
+        addBtn.style.height = '24px';
+        addBtn.style.display = 'inline-flex';
+        addBtn.style.alignItems = 'center';
+        addBtn.style.justifyContent = 'center';
+    }
+    
     if (currentChapter === node.name) header.classList.add('active-chapter');
     
     const titleSpan = header.querySelector('.node-title');
@@ -3831,6 +4177,27 @@ const rightDot = hasContent ? `<span style="width: 6px; height: 6px; background:
         selectChapter(node.name);
     });
     
+   // 加号按钮点击事件 - 添加子目录（使用自定义模态窗）
+if (addBtn) {
+    addBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showCustomInput(
+            `在「${node.name}」下添加子目录`,
+            '新目录',
+            (subName) => {
+                if (subName && subName.trim()) {
+                    if (!node.children) node.children = [];
+                    node.children.push({ id: genId(), name: subName.trim(), children: [] });
+                    saveTrees();
+                    renderTree();
+                    expandedNodes.add(node.id);
+                    renderTree();
+                    showMsg(`✅ 已添加「${subName}」到「${node.name}」`);
+                }
+            }
+        );
+    });
+}
     if (hasChildren) {
         const childrenDiv = document.createElement('div');
         childrenDiv.className = 'children-container';
@@ -3860,6 +4227,7 @@ const rightDot = hasContent ? `<span style="width: 6px; height: 6px; background:
     }
     parentEl.appendChild(div);
 }
+
 
 // 检查节点是否有笔记内容
 function checkNodeHasContent(nodeName) {
@@ -4177,58 +4545,7 @@ function showMsg(msg) {
         }
     }
     
-   
-
-
-function bindEvents() {
-// 手机端菜单开关
-const menuToggleBtn = document.getElementById('menuToggleBtn');
-const sidebar = document.querySelector('.sidebar');
-const sidebarOverlay = document.getElementById('sidebarOverlay');
-
-
-if (menuToggleBtn) {
-    menuToggleBtn.addEventListener('click', toggleSidebar);
-}
-
-if (sidebarOverlay) {
-    sidebarOverlay.addEventListener('click', closeSidebar);
-}
-
-// 点击目录中的章节后，在手机上自动关闭侧边栏
-// 找到 selectChapter 函数，在最后添加：
-// if (window.innerWidth <= 768) closeSidebar();
-
-// 搜索按钮
-const searchBtn = document.getElementById('searchBtn');
-if (searchBtn) {
-    searchBtn.addEventListener('click', () => {
-        document.getElementById('searchModal').classList.add('active');
-        document.getElementById('searchInput').value = '';
-        document.getElementById('searchResults').innerHTML = '<div style="color: #8e8e93; text-align: center; padding: 40px;">输入关键词开始搜索</div>';
-        setTimeout(() => document.getElementById('searchInput').focus(), 100);
-    });
-}
-
-// 关闭搜索模态窗
-const closeSearchBtn = document.getElementById('closeSearchBtn');
-if (closeSearchBtn) {
-    closeSearchBtn.addEventListener('click', () => closeModal('searchModal'));
-}
-
-// 执行搜索
-const doSearchBtn = document.getElementById('doSearchBtn');
-const searchInput = document.getElementById('searchInput');
-if (doSearchBtn) {
-    doSearchBtn.addEventListener('click', performSearch);
-}
-if (searchInput) {
-    searchInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') performSearch();
-    });
-}
-
-// 搜索函数
+  // ========== 搜索相关函数（必须在 bindEvents 之前定义） ==========
 function performSearch() {
     const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
     if (!keyword) {
@@ -4237,22 +4554,19 @@ function performSearch() {
     }
     
     const results = [];
-    // 将原来的 categoryNames 改为：
-const categoryNames = {
-    'china': '中国历史',
-    'world': '世界历史',
-    'lunyu': '论语',
-    'shijing': '诗经',
-    'tangshi': '唐诗',
-    'songci': '宋词'
-};
+    const categoryNames = {
+        'china': '中国历史',
+        'world': '世界历史',
+        'lunyu': '论语',
+        'shijing': '诗经',
+        'tangshi': '唐诗',
+        'songci': '宋词'
+    };
     
-    // 遍历所有笔记
     notes.forEach(note => {
         const category = categoryNames[note.classic] || note.classic;
         const isClassic = ['lunyu', 'shijing', 'tangshi', 'songci'].includes(note.classic);
         
-        // 搜索章节名称
         if (note.chapter.toLowerCase().includes(keyword)) {
             results.push({
                 category: category,
@@ -4265,7 +4579,6 @@ const categoryNames = {
         }
         
         if (isClassic) {
-            // 经典文献：搜索原文、注释、补充、译文
             const fields = [
                 { name: '原文', content: note.original, key: 'original' },
                 { name: '注释', content: note.notes, key: 'notes' },
@@ -4290,7 +4603,6 @@ const categoryNames = {
                 }
             });
         } else {
-            // 历史人物：搜索生平和成就
             if (note.content && note.content !== '<p><br></p>') {
                 const plainText = stripHtml(note.content).toLowerCase();
                 if (plainText.includes(keyword)) {
@@ -4306,7 +4618,6 @@ const categoryNames = {
                     });
                 }
             }
-            // 搜索相关人物
             if (note.relatedPersons && note.relatedPersons.length > 0) {
                 note.relatedPersons.forEach(person => {
                     const personName = typeof person === 'string' ? person : person.name;
@@ -4322,7 +4633,6 @@ const categoryNames = {
                     }
                 });
             }
-            // 搜索相关事件
             if (note.relatedEvents && note.relatedEvents.length > 0) {
                 note.relatedEvents.forEach(event => {
                     if (event.toLowerCase().includes(keyword)) {
@@ -4337,7 +4647,6 @@ const categoryNames = {
                     }
                 });
             }
-            // 搜索时代线
             if (note.timeline && note.timeline.length > 0) {
                 note.timeline.forEach(timeline => {
                     if (timeline.toLowerCase().includes(keyword)) {
@@ -4355,7 +4664,6 @@ const categoryNames = {
         }
     });
     
-    // 去重（同一个笔记的同一个字段只显示一条）
     const uniqueResults = [];
     const seen = new Set();
     results.forEach(result => {
@@ -4366,11 +4674,9 @@ const categoryNames = {
         }
     });
     
-    // 渲染结果
     renderSearchResults(uniqueResults, keyword);
 }
 
-// 去除 HTML 标签
 function stripHtml(html) {
     if (!html) return '';
     const temp = document.createElement('div');
@@ -4378,7 +4684,6 @@ function stripHtml(html) {
     return temp.textContent || temp.innerText || '';
 }
 
-// 获取预览片段
 function getPreview(text, keyword, maxLen = 120) {
     const lowerText = text.toLowerCase();
     const index = lowerText.indexOf(keyword.toLowerCase());
@@ -4390,18 +4695,15 @@ function getPreview(text, keyword, maxLen = 120) {
     if (start > 0) preview = '...' + preview;
     if (end < text.length) preview = preview + '...';
     
-    // 高亮关键词
     const regex = new RegExp(`(${escapeRegExp(keyword)})`, 'gi');
     preview = preview.replace(regex, '<mark class="search-result-highlight">$1</mark>');
     return preview;
 }
 
-// 转义正则表达式特殊字符
 function escapeRegExp(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-// 渲染搜索结果
 function renderSearchResults(results, keyword) {
     const container = document.getElementById('searchResults');
     if (results.length === 0) {
@@ -4422,54 +4724,165 @@ function renderSearchResults(results, keyword) {
     });
     container.innerHTML = html;
     
-    // 绑定点击跳转事件
     container.querySelectorAll('.search-result-item').forEach(item => {
         item.addEventListener('click', () => {
             const classic = item.dataset.classic;
             const chapter = item.dataset.chapter;
             
-            // 切换分类
             if (classic !== currentClassic) {
                 switchClassic(classic);
             }
-            // 切换到章节
             currentChapter = chapter;
             saveCurrent();
             renderTree();
             renderRecords();
-            // 关闭搜索窗口
             closeModal('searchModal');
             showMsg(`已跳转到: ${chapter}`);
         });
     });
+} 
+
+
+// 自定义输入模态窗
+let customInputCallback = null;
+
+function showCustomInput(title, placeholder, callback) {
+    const modal = document.getElementById('customInputModal');
+    const input = document.getElementById('customInputValue');
+    const titleEl = document.getElementById('customInputTitle');
+    
+    titleEl.textContent = title;
+    input.placeholder = placeholder || '请输入名称';
+    input.value = '';
+    customInputCallback = callback;
+    
+    modal.classList.add('active');
+    setTimeout(() => input.focus(), 100);
 }
 
-    // 编辑标签按钮
-const editTagsBtn = document.getElementById('editTagsBtn');
-if (editTagsBtn) {
-    editTagsBtn.addEventListener('click', () => {
+function closeCustomInput() {
+    document.getElementById('customInputModal').classList.remove('active');
+    customInputCallback = null;
+}
+
+// 绑定自定义输入模态窗事件
+function bindCustomInputEvents() {
+    const closeBtn = document.getElementById('closeCustomInputBtn');
+    const cancelBtn = document.getElementById('customInputCancelBtn');
+    const confirmBtn = document.getElementById('customInputConfirmBtn');
+    const input = document.getElementById('customInputValue');
+    
+    if (closeBtn) closeBtn.onclick = closeCustomInput;
+    if (cancelBtn) cancelBtn.onclick = closeCustomInput;
+    if (confirmBtn) {
+        confirmBtn.onclick = () => {
+            const value = input.value.trim();
+            if (value && customInputCallback) {
+                customInputCallback(value);
+            }
+            closeCustomInput();
+        };
+    }
+    if (input) {
+        input.onkeypress = (e) => {
+            if (e.key === 'Enter') {
+                const value = input.value.trim();
+                if (value && customInputCallback) {
+                    customInputCallback(value);
+                }
+                closeCustomInput();
+            }
+        };
+    }
+}
+
+
+function bindEvents() {
+    // 手机端菜单开关
+    const menuToggleBtn = document.getElementById('menuToggleBtn');
+    const sidebar = document.querySelector('.sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+    if (menuToggleBtn) {
+        menuToggleBtn.addEventListener('click', toggleSidebar);
+    }
+
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', closeSidebar);
+    }
+
+    // ========== 搜索功能 ==========
+    const doSearch = () => {
+        document.getElementById('searchModal').classList.add('active');
+        document.getElementById('searchInput').value = '';
+        document.getElementById('searchResults').innerHTML = '<div style="color: #8e8e93; text-align: center; padding: 40px;">输入关键词开始搜索</div>';
+        setTimeout(() => document.getElementById('searchInput').focus(), 100);
+    };
+    
+    const searchBtn = document.getElementById('searchBtn');
+    if (searchBtn) searchBtn.addEventListener('click', doSearch);
+    
+    const searchBtnDesktop = document.getElementById('searchBtnDesktop');
+    if (searchBtnDesktop) searchBtnDesktop.addEventListener('click', doSearch);
+
+    const closeSearchBtn = document.getElementById('closeSearchBtn');
+    if (closeSearchBtn) closeSearchBtn.addEventListener('click', () => closeModal('searchModal'));
+
+    const doSearchBtn = document.getElementById('doSearchBtn');
+    const searchInput = document.getElementById('searchInput');
+    if (doSearchBtn) doSearchBtn.addEventListener('click', performSearch);
+    if (searchInput) searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') performSearch();
+    });
+
+    // ========== 编辑标签功能 ==========
+    const editTags = () => {
         renderTagsList();
         document.getElementById('tagsModal').classList.add('active');
-    });
-}
+    };
+    
+    const editTagsBtn = document.getElementById('editTagsBtn');
+    if (editTagsBtn) editTagsBtn.addEventListener('click', editTags);
+    
+    const editTagsBtnDesktop = document.getElementById('editTagsBtnDesktop');
+    if (editTagsBtnDesktop) editTagsBtnDesktop.addEventListener('click', editTags);
 
-// 关闭标签模态窗
-const closeTagsBtn = document.getElementById('closeTagsBtn');
-if (closeTagsBtn) {
-    closeTagsBtn.addEventListener('click', () => closeModal('tagsModal'));
-}
+    const closeTagsBtn = document.getElementById('closeTagsBtn');
+    if (closeTagsBtn) closeTagsBtn.addEventListener('click', () => closeModal('tagsModal'));
 
-// 添加标签按钮
-const addTagBtn = document.getElementById('addTagBtn');
-if (addTagBtn) {
-    addTagBtn.addEventListener('click', addNewTag);
-}
-   // 头部上传按钮
-const headerSaveToGistBtn = document.getElementById('headerSaveToGistBtn');
-if (headerSaveToGistBtn) {
-    headerSaveToGistBtn.onclick = async () => {
-        console.log('上传按钮被点击');
-        
+    const addTagBtn = document.getElementById('addTagBtn');
+    if (addTagBtn) addTagBtn.addEventListener('click', addNewTag);
+
+    // ========== 编辑目录功能 ==========
+    const editCatalog = () => {
+        const classicNames = {
+            'china': '中国历史',
+            'world': '世界历史',
+            'lunyu': '论语',
+            'shijing': '诗经',
+            'tangshi': '唐诗',
+            'songci': '宋词'
+        };
+        const title = document.querySelector('#catalogModal .modal-header h3');
+        if (title) {
+            title.innerHTML = `编辑目录 - ${classicNames[currentClassic] || currentClassic}`;
+        }
+        renderCatalogTree(true);
+        document.getElementById('catalogModal').classList.add('active');
+    };
+    
+    const editCatalogBtn = document.getElementById('editCatalogBtn');
+    if (editCatalogBtn) editCatalogBtn.addEventListener('click', editCatalog);
+    
+    const editCatalogBtnDesktop = document.getElementById('editCatalogBtnDesktop');
+    if (editCatalogBtnDesktop) editCatalogBtnDesktop.addEventListener('click', editCatalog);
+
+    const closeCatalogBtn = document.getElementById('closeCatalogBtn');
+    if (closeCatalogBtn) closeCatalogBtn.addEventListener('click', () => closeModal('catalogModal'));
+
+    // ========== Gist 上传/恢复功能 ==========
+    const saveToGistHandler = async (event) => {
+        const btn = event.currentTarget;
         const token = localStorage.getItem(PAGE_ID + '_github_token');
         const gistId = localStorage.getItem(PAGE_ID + '_gist_id');
         
@@ -4482,8 +4895,7 @@ if (headerSaveToGistBtn) {
         const backupData = { version: '1.0', backupTime: new Date().toISOString(), notes, trees };
         showSyncStatus('正在上传...', 'info');
         
-        // ✅ 添加：显示加载状态
-        setButtonLoading(headerSaveToGistBtn, true);
+        setButtonLoading(btn, true);
         
         try {
             const updateRes = await fetch(`https://api.github.com/gists/${gistId}`, {
@@ -4506,18 +4918,12 @@ if (headerSaveToGistBtn) {
             showSyncStatus('❌ 上传失败: ' + err.message, 'error');
             alert('❌ 上传失败: ' + err.message);
         } finally {
-            // ✅ 添加：无论成功失败都恢复按钮状态
-            setButtonLoading(headerSaveToGistBtn, false);
+            setButtonLoading(btn, false);
         }
     };
-}
-
-
-    // 头部恢复按钮 - 直接从 localStorage 读取
- // 头部恢复按钮
-const headerLoadFromGistBtn = document.getElementById('headerLoadFromGistBtn');
-if (headerLoadFromGistBtn) {
-    headerLoadFromGistBtn.onclick = async () => {
+    
+    const loadFromGistHandler = async (event) => {
+        const btn = event.currentTarget;
         const token = localStorage.getItem(PAGE_ID + '_github_token');
         const gistId = localStorage.getItem(PAGE_ID + '_gist_id');
         
@@ -4529,8 +4935,7 @@ if (headerLoadFromGistBtn) {
         
         showSyncStatus('正在恢复...', 'info');
         
-        // ✅ 添加：显示加载状态
-        setButtonLoading(headerLoadFromGistBtn, true);
+        setButtonLoading(btn, true);
         
         try {
             const res = await fetch(`https://api.github.com/gists/${gistId}`, {
@@ -4555,47 +4960,58 @@ if (headerLoadFromGistBtn) {
             showSyncStatus('❌ 恢复失败: ' + err.message, 'error');
             alert('❌ 恢复失败: ' + err.message);
         } finally {
-            // ✅ 添加：恢复按钮状态
-            setButtonLoading(headerLoadFromGistBtn, false);
+            setButtonLoading(btn, false);
         }
     };
-}
     
-    // 设置按钮（打开设置并加载保存的配置）
+    const headerSaveToGistBtn = document.getElementById('headerSaveToGistBtn');
+    if (headerSaveToGistBtn) headerSaveToGistBtn.addEventListener('click', saveToGistHandler);
+    
+    const headerSaveToGistBtnDesktop = document.getElementById('headerSaveToGistBtnDesktop');
+    if (headerSaveToGistBtnDesktop) headerSaveToGistBtnDesktop.addEventListener('click', saveToGistHandler);
+    
+    const headerLoadFromGistBtn = document.getElementById('headerLoadFromGistBtn');
+    if (headerLoadFromGistBtn) headerLoadFromGistBtn.addEventListener('click', loadFromGistHandler);
+    
+    const headerLoadFromGistBtnDesktop = document.getElementById('headerLoadFromGistBtnDesktop');
+    if (headerLoadFromGistBtnDesktop) headerLoadFromGistBtnDesktop.addEventListener('click', loadFromGistHandler);
+
+    // ========== 设置按钮 ==========
+    const openSettings = () => {
+        loadGistSettings();
+        document.getElementById('settingsModal').classList.add('active');
+    };
+    
     const settingsBtn = document.getElementById('settingsBtn');
-    if (settingsBtn) {
-        settingsBtn.addEventListener('click', () => {
-            loadGistSettings();
-            document.getElementById('settingsModal').classList.add('active');
-        });
-    }
+    if (settingsBtn) settingsBtn.addEventListener('click', openSettings);
     
+    const settingsBtnDesktop = document.getElementById('settingsBtnDesktop');
+    if (settingsBtnDesktop) settingsBtnDesktop.addEventListener('click', openSettings);
+
     // 保存设置按钮
     const saveGistSettingsBtn = document.getElementById('saveGistSettingsBtn');
-    if (saveGistSettingsBtn) {
-        saveGistSettingsBtn.addEventListener('click', saveGistSettings);
-    }
-    
+    if (saveGistSettingsBtn) saveGistSettingsBtn.addEventListener('click', saveGistSettings);
+
     // 关闭笔记模态窗
     const closeModalBtn = document.getElementById('closeModalBtn');
     if (closeModalBtn) closeModalBtn.addEventListener('click', () => closeModal('noteModal'));
-    
+
     // 保存笔记按钮
     const modalConfirmBtn = document.getElementById('modalConfirmBtn');
     if (modalConfirmBtn) modalConfirmBtn.addEventListener('click', saveNote);
-    
+
     // 相关人物按钮
     const addRelatedPersonBtn = document.getElementById('addRelatedPersonBtn');
     if (addRelatedPersonBtn) addRelatedPersonBtn.addEventListener('click', addRelatedPerson);
-    
+
     // 时代线按钮
     const addTimelineBtn = document.getElementById('addTimelineBtn');
     if (addTimelineBtn) addTimelineBtn.addEventListener('click', addTimelineItem);
-    
+
     // 相关事件按钮
     const addRelatedEventBtn = document.getElementById('addRelatedEventBtn');
     if (addRelatedEventBtn) addRelatedEventBtn.addEventListener('click', addRelatedEvent);
-    
+
     // 输入框回车事件
     const relatedPersonInput = document.getElementById('relatedPersonInput');
     if (relatedPersonInput) relatedPersonInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addRelatedPerson(); });
@@ -4605,47 +5021,21 @@ if (headerLoadFromGistBtn) {
     
     const relatedEventInput = document.getElementById('relatedEventInput');
     if (relatedEventInput) relatedEventInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addRelatedEvent(); });
-    
+
     // 分类切换按钮
     document.querySelectorAll('.classic-btn').forEach(btn => btn.addEventListener('click', () => switchClassic(btn.dataset.classic)));
-    
+
     // 关闭设置模态窗
     const closeSettingsBtn = document.getElementById('closeSettingsBtn');
     if (closeSettingsBtn) closeSettingsBtn.addEventListener('click', () => closeModal('settingsModal'));
-    
+
     // 弹窗内的上传和恢复按钮
     const saveToGistBtn = document.getElementById('saveToGistBtn');
     if (saveToGistBtn) saveToGistBtn.addEventListener('click', saveToGist);
     
     const loadFromGistBtn = document.getElementById('loadFromGistBtn');
     if (loadFromGistBtn) loadFromGistBtn.addEventListener('click', loadFromGist);
-    
-    // 编辑目录按钮 - 打开目录编辑模态窗
-const editCatalogBtn = document.getElementById('editCatalogBtn');
-if (editCatalogBtn) {
-    editCatalogBtn.addEventListener('click', () => {
-        const classicNames = {
-            'china': '中国历史',
-            'world': '世界历史',
-            'lunyu': '论语',
-            'shijing': '诗经',
-            'tangshi': '唐诗',
-            'songci': '宋词'
-        };
-        const title = document.querySelector('#catalogModal .modal-header h3');
-        if (title) {
-            title.innerHTML = `编辑目录 - ${classicNames[currentClassic] || currentClassic}`;
-        }
-        renderCatalogTree(true);  // 传入 true，重置折叠状态
-        document.getElementById('catalogModal').classList.add('active');
-    });
-}
-    // 关闭目录模态窗
-    const closeCatalogBtn = document.getElementById('closeCatalogBtn');
-    if (closeCatalogBtn) {
-        closeCatalogBtn.addEventListener('click', () => closeModal('catalogModal'));
-    }
-    
+
     // 添加目录按钮
     const addRootBtn = document.getElementById('addRootBtn');
     if (addRootBtn) {
@@ -4662,14 +5052,12 @@ if (editCatalogBtn) {
             
             if (parentId === '__root__') {
                 currentTree.push({ id: genId(), name: newName, children: [] });
-                console.log('添加一级目录:', newName);
             } else {
                 function addChildToParent(nodes) {
                     for (let node of nodes) {
                         if (node.id === parentId) {
                             if (!node.children) node.children = [];
                             node.children.push({ id: genId(), name: newName, children: [] });
-                            console.log('添加子目录到:', node.name, newName);
                             return true;
                         }
                         if (node.children && addChildToParent(node.children)) return true;
@@ -4690,7 +5078,6 @@ if (editCatalogBtn) {
         };
     }
 }
-
 
 
 
@@ -4840,7 +5227,7 @@ function loadGistSettings() {
     function init() { 
         loadTrees(); 
         loadNotes(); 
-
+bindCustomInputEvents(); 
         // 清理重复笔记（保留 id 最大的）
     const seen = new Map();
     const uniqueNotes = [];
