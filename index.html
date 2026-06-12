@@ -5247,8 +5247,9 @@ const toolbarOptions = [
     [{ 'list': 'ordered' }, { 'list': 'bullet' }],
     [{ 'indent': '-1' }, { 'indent': '+1' }],
     [{ 'color': ['#f1c40f', '#e67e22', '#e74c3c', '#3498db'] }],
+    [{ 'background': [] }],   // ← 添加这一行：背景色/高亮
     ['clean'],
-    ['link']  // 添加链接按钮（后面会覆盖成双链功能）
+    ['link']
 ];
 
 function initEditors() {
