@@ -3087,6 +3087,7 @@ function saveAndCloseEditor(el) {
             console.log(`保存 ${field}:`, newHtml.substring(0, 50));
             renderRecords();
             showMsg('✅ 已自动保存');
+            autoSyncToGist();
         }
     }
     
