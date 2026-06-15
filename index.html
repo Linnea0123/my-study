@@ -6387,7 +6387,11 @@ function autoSyncToGist(showTip = false) {
         
         isSyncing = true;
         
-        const uploadBtn = document.getElementById('headerSaveToGistBtnDesktop') || document.getElementById('headerSaveToGistBtn');
+let uploadBtn = document.getElementById('headerSaveToGistBtnDesktop');
+if (!uploadBtn) uploadBtn = document.getElementById('headerSaveToGistBtn');
+if (!uploadBtn) uploadBtn = document.getElementById('saveToGistBtn');
+// 如果都找不到，创建一个假的避免报错
+if (!uploadBtn) uploadBtn = { style: {} };
         setButtonLoading(uploadBtn, true);
         
         if (showTip) showMsg('☁️ 正在同步...');
