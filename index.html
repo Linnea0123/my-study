@@ -725,7 +725,7 @@ body {
         .collapsible-content {
             padding: 12px 16px;
             display: block;
-            max-height: 300px;
+            max-height: 200px;
             overflow-y: auto;
         }
         .record-header-right {
@@ -741,6 +741,8 @@ body {
             color: #8e8e93;
             padding: 0 4px;
         }
+
+        
 
         .related-tag {
     display: inline-flex;
@@ -3029,30 +3031,23 @@ function bindInlineEditors() {
             
             el.addEventListener('blur', saveOnBlur, { once: true });
             
-            const handleKeyDown = (e) => {
-                if (e.key === 'Escape') {
-                    e.preventDefault();
-                    cancelEdit(el);
-                    el.removeEventListener('keydown', handleKeyDown);
-                }
-                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-                    e.preventDefault();
-                    el.blur();
-                }
-                if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
-                    e.preventDefault();
-                    const selection = window.getSelection();
-                    if (!selection.rangeCount) return;
-                    const range = selection.getRangeAt(0);
-                    const br = document.createElement('br');
-                    range.deleteContents();
-                    range.insertNode(br);
-                    range.setStartAfter(br);
-                    range.setEndAfter(br);
-                    selection.removeAllRanges();
-                    selection.addRange(range);
-                }
-            };
+            
+
+// 找到 saveAndCloseEditor 函数中的 handleKeyDown，替换为：
+const handleKeyDown = (e) => {
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        cancelEdit(el);
+        el.removeEventListener('keydown', handleKeyDown);
+    }
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        el.blur();
+    }
+    // 删除手动插入 br 的代码，让浏览器自然处理换行
+    // contenteditable 元素默认 Enter 就是换行，不需要特殊处理
+};
+
             el.addEventListener('keydown', handleKeyDown);
             
             el._blurHandler = saveOnBlur;
@@ -4582,35 +4577,51 @@ function processBidirectionalLinksForClassic(currentNoteData) {
     }
     
    
-   
-    // 树形渲染
-   function renderTree() {
+function renderTree() {
     const container = document.getElementById('chaptersTreeContainer');
     if (!container) return;
     container.innerHTML = '';
-    
-    // 保存当前展开的节点（不重置）
     getCurrentTree().forEach(node => renderNode(container, node, 1));
     
-    // 渲染完成后，根据 expandedNodes 恢复展开状态
     setTimeout(() => {
-        document.querySelectorAll('.tree-node .children-container').forEach(container => {
+        // 先全部收起
+        document.querySelectorAll('.children-container').forEach(el => {
+            el.classList.remove('open');
+        });
+        document.querySelectorAll('.chevron').forEach(el => {
+            el.classList.remove('open');
+        });
+        
+        // 🔥 修改：只展开 expandedNodes 中记录的节点
+        const allContainers = document.querySelectorAll('.children-container');
+        allContainers.forEach(container => {
             const parentNode = container.closest('.tree-node');
             if (parentNode) {
+                // 🔥 关键修改：从 parentNode 中找带有 data-node-id 的 header
                 const header = parentNode.querySelector('.level-1, .level-2, .level-3');
-                if (header) {
-                    const chevron = header.querySelector('.chevron');
-                    // 判断这个节点是否应该在 expandedNodes 中
-                    // 需要通过节点名称找到对应的 node id
-                    const nodeName = header.querySelector('.node-title')?.textContent;
-                    // 这里简化处理：保持现有状态
+                const parentId = header ? header.getAttribute('data-node-id') : null;
+                if (parentId && expandedNodes.has(parentId)) {
+                    container.classList.add('open');
+                    if (header) {
+                        const chev = header.querySelector('.chevron');
+                        if (chev) chev.classList.add('open');
+                    }
                 }
             }
         });
-    }, 0);
+        
+        // 高亮当前章节
+        const currentTitle = currentChapter;
+        document.querySelectorAll('.node-title').forEach(el => {
+            if (el.textContent === currentTitle) {
+                const header = el.closest('.level-1, .level-2, .level-3');
+                if (header) header.classList.add('active-chapter');
+            }
+        });
+        
+        console.log('✅ 目录渲染完成，只展开当前路径，expandedNodes:', Array.from(expandedNodes));
+    }, 50);
 }
-// 渲染标签列表
-// 渲染标签列表
 function renderTagsList() {
     const container = document.getElementById('tagsList');
     if (!container) return;
@@ -4979,7 +4990,7 @@ function renderNode(parentEl, node, level) {
     if (level === 1) header.className = 'level-1';
     else if (level === 2) header.className = 'level-2';
     else header.className = 'level-3';
-    
+     header.setAttribute('data-node-id', node.id);
     const hasContent = checkNodeHasContent(node.name);
     if (hasContent) header.classList.add('has-content');
     if (currentChapter === node.name) header.classList.add('active-chapter');
@@ -5027,8 +5038,9 @@ function renderNode(parentEl, node, level) {
                     if (!node.children) node.children = [];
                     node.children.push({ id: genId(), name: subName.trim(), children: [] });
                     saveTrees();
-                    renderTree();
+                    // 添加后自动展开当前节点
                     expandedNodes.add(node.id);
+                    localStorage.setItem('expanded_' + currentClassic, JSON.stringify(Array.from(expandedNodes)));
                     renderTree();
                     showMsg(`✅ 已添加「${subName}」到「${node.name}」`);
                     autoSyncToGist();
@@ -5037,49 +5049,39 @@ function renderNode(parentEl, node, level) {
         });
     }
     
+    const chevSpan = header.querySelector('.chevron');
+    
     if (hasChildren) {
         const childrenDiv = document.createElement('div');
         childrenDiv.className = 'children-container';
         node.children.forEach(child => renderNode(childrenDiv, child, level + 1));
         
-        // ⭐ 关键修复：从 localStorage 读取并恢复展开状态
-        const savedState = localStorage.getItem('history_expanded_' + currentClassic);
-        let savedExpanded = savedState ? JSON.parse(savedState) : [];
         
-        if (savedExpanded.includes(node.id) || expandedNodes.has(node.id)) {
-            childrenDiv.classList.add('open');
-            expandedNodes.add(node.id);
-        }
         
         div.appendChild(header);
         div.appendChild(childrenDiv);
         
-        const chevSpan = header.querySelector('.chevron');
-       if (chevSpan) {
-    chevSpan.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const isOpen = childrenDiv.classList.contains('open');
-        if (isOpen) {
-            childrenDiv.classList.remove('open');
-            chevSpan.classList.remove('open');
-            expandedNodes.delete(node.id);
-        } else {
-            childrenDiv.classList.add('open');
-            chevSpan.classList.add('open');
-            expandedNodes.add(node.id);
+        if (chevSpan) {
+            chevSpan.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isOpen = childrenDiv.classList.contains('open');
+                if (isOpen) {
+                    childrenDiv.classList.remove('open');
+                    chevSpan.classList.remove('open');
+                    expandedNodes.delete(node.id);
+                } else {
+                    childrenDiv.classList.add('open');
+                    chevSpan.classList.add('open');
+                    expandedNodes.add(node.id);
+                }
+                localStorage.setItem('expanded_' + currentClassic, JSON.stringify(Array.from(expandedNodes)));
+            });
         }
-        // 保存手动操作的状态
-        const toSave = Array.from(expandedNodes);
-        localStorage.setItem('expanded_' + currentClassic, JSON.stringify(toSave));
-    });
-}
-   
     } else {
         div.appendChild(header);
     }
     parentEl.appendChild(div);
 }
-
 // 检查节点是否有笔记内容
 function checkNodeHasContent(nodeName) {
     const note = notes.find(n => n.classic === currentClassic && n.chapter === nodeName);
@@ -5122,60 +5124,64 @@ function closeSidebar() {
     }
 }
 
-   function selectChapter(name) {
+ function selectChapter(name) {
     if (currentChapter === name) return;
     currentChapter = name;
     saveCurrent();
+    localStorage.setItem('last_chapter_' + currentClassic, name);
     
-    // 切换章节时，展开新章节的路径，收起其他
-    expandOnlyCurrentPath();
-    
+    // 重新渲染目录树（会自动重新计算展开状态）
     renderTree();
     renderRecords();
     showMsg(`当前：${name}`);
     
-    if (window.innerWidth <= 768) {
-        closeSidebar();
-    }
+    if (window.innerWidth <= 768) closeSidebar();
 }
-    
-    // 1. 先放 expandOnlyCurrentPath 函数
+
+
 function expandOnlyCurrentPath() {
-    // 清空所有展开状态
+    // 🔥 清空当前展开状态（不保留其他目录的展开）
     expandedNodes.clear();
     
     const currentTree = getCurrentTree();
-    const pathIds = [];
+    const targetName = currentChapter;
+    const parentIds = [];
     
-    // 查找当前章节并记录所有祖先节点的 ID
-    function findPath(nodes, targetName, path = []) {
+    // 递归查找目标节点，并记录所有父节点ID
+    function findParentIds(nodes, target, parents = []) {
         for (let node of nodes) {
-            if (node.name === targetName) {
-                path.forEach(p => {
-                    if (p.id) pathIds.push(p.id);
+            if (node.name === target) {
+                parents.forEach(p => {
+                    if (p.id) parentIds.push(p.id);
                 });
                 return true;
             }
-            if (node.children && node.children.length) {
-                const found = findPath(node.children, targetName, [...path, node]);
+            if (node.children && node.children.length > 0) {
+                const found = findParentIds(node.children, target, [...parents, node]);
                 if (found) return true;
             }
         }
         return false;
     }
     
-    findPath(currentTree, currentChapter);
+    findParentIds(currentTree, targetName);
     
-    // 展开祖先节点
-    pathIds.forEach(id => expandedNodes.add(id));
+    // 只添加当前章节的父级目录ID，其他目录全部折叠
+    parentIds.forEach(id => expandedNodes.add(id));
     
-    // 保存到 localStorage
-    const toSave = Array.from(expandedNodes);
-    localStorage.setItem('expanded_' + currentClassic, JSON.stringify(toSave));
-    localStorage.setItem('last_chapter_' + currentClassic, currentChapter);
+    // 🔥 保存当前分类的展开状态到 localStorage（只保存当前路径）
+    localStorage.setItem('expanded_' + currentClassic, JSON.stringify(Array.from(expandedNodes)));
+    
+    // 🔥 可选：同时清除其他分类的 localStorage 记录，确保切换后干净
+    const allClassics = ['china', 'world', 'lunyu', 'shijing', 'tangshi', 'songci'];
+    allClassics.forEach(c => {
+        if (c !== currentClassic) {
+            // 不清除，只是保留，但切换时会重新处理
+        }
+    });
+    
+    console.log('展开的父节点ID:', Array.from(expandedNodes));
 }
-
-// 2. 然后放 selectChapter 函数
 function selectChapter(name) {
     if (currentChapter === name) return;
     currentChapter = name;
@@ -5192,9 +5198,11 @@ function selectChapter(name) {
     }
 }
     function saveCurrent() { 
-        localStorage.setItem('history_currentClassic', currentClassic); 
-        localStorage.setItem('history_currentChapter', currentChapter); 
-    }
+    localStorage.setItem('history_currentClassic', currentClassic); 
+    localStorage.setItem('history_currentChapter', currentChapter);
+    // 👇 添加这行
+    localStorage.setItem('last_chapter_' + currentClassic, currentChapter);
+}
     
     function loadCurrent() { 
         const c = localStorage.getItem('history_currentClassic'); 
@@ -5203,69 +5211,44 @@ function selectChapter(name) {
         if (ch) currentChapter = ch; 
     }
     
-
 function switchClassic(type) {
     if (type === currentClassic) return;
     
-    // 保存当前分类的展开状态和当前章节
-    const currentState = Array.from(expandedNodes);
-    localStorage.setItem('expanded_' + currentClassic, JSON.stringify(currentState));
-    localStorage.setItem('last_chapter_' + currentClassic, currentChapter);
-    
-    // 切换到新分类
+    // 切换分类
     currentClassic = type;
     
-    // 恢复新分类的展开状态
-    const savedState = localStorage.getItem('expanded_' + currentClassic);
-    if (savedState) {
-        const arr = JSON.parse(savedState);
-        expandedNodes.clear();
-        arr.forEach(id => expandedNodes.add(id));
-    } else {
-        expandedNodes.clear();
-    }
+    // 🔥 关键修改：清空所有分类的展开状态（只保留当前分类）
+    // 清除 localStorage 中所有分类的展开记录
+    const allClassics = ['china', 'world', 'lunyu', 'shijing', 'tangshi', 'songci'];
+    allClassics.forEach(c => {
+        localStorage.removeItem('expanded_' + c);
+    });
     
-    // 恢复新分类的最后章节
-    const lastChapter = localStorage.getItem('last_chapter_' + currentClassic);
-    if (lastChapter) {
-        // 检查该章节是否还存在
+    // 清空当前 expandedNodes
+    expandedNodes.clear();
+    
+    // 只展开当前章节的路径
+    expandOnlyCurrentPath();
+    
+    // 保存当前分类的展开状态到 localStorage
+    saveExpandedState();
+    
+    // 恢复最后章节
+    const savedChapter = localStorage.getItem('last_chapter_' + currentClassic);
+    if (savedChapter) {
         const leaves = getAllLeafNodes(getCurrentTree());
-        const exists = leaves.find(l => l.name === lastChapter);
-        currentChapter = exists ? lastChapter : (leaves[0]?.name || '');
-    } else {
-        const leaves = getAllLeafNodes(getCurrentTree());
-        currentChapter = leaves[0]?.name || '';
+        const exists = leaves.find(l => l.name === savedChapter);
+        if (exists) currentChapter = savedChapter;
     }
     
     saveCurrent();
     updateClassicUI();
-    
-    // 确保当前章节的路径被展开
-    expandOnlyCurrentPath();
-    
     renderTree();
     renderRecords();
     
-    const classicNamesMap = {
-        'china': '中国历史',
-        'world': '世界历史',
-        'lunyu': '论语',
-        'shijing': '诗经',
-        'tangshi': '唐诗',
-        'songci': '宋词'
-    };
-    const name = classicNamesMap[type] || type;
-    showMsg(`切换到${name}`);
-    
-    if (window.innerWidth <= 768) {
-        closeSidebar();
-    }
+    if (window.innerWidth <= 768) closeSidebar();
+    showMsg(`切换到${classicNamesMap[type] || type}`);
 }
-
-
-
-
-
 
 function updateClassicUI() {
         document.querySelectorAll('.classic-btn').forEach(btn => {
@@ -6516,18 +6499,13 @@ function init() {
     loadTrees(); 
     loadNotes(); 
     bindCustomInputEvents(); 
-    // ⭐ 加载当前分类的展开状态
-    const savedExpanded = localStorage.getItem('expanded_' + currentClassic);
-    if (savedExpanded) {
-        const arr = JSON.parse(savedExpanded);
-        expandedNodes.clear();
-        arr.forEach(id => expandedNodes.add(id));
-    } else {
-        // 如果没有保存的状态，只展开当前章节的路径
-        expandOnlyCurrentPath();
-    }
+
+expandedNodes.clear();
+expandOnlyCurrentPath();
+
     
-    // ⭐ 加载当前分类的最后章节
+    // ⭐ 加载当前分类的最后章节（延迟执行，确保目录树已准备好）
+setTimeout(() => {
     const lastChapter = localStorage.getItem('last_chapter_' + currentClassic);
     if (lastChapter) {
         const leaves = getAllLeafNodes(getCurrentTree());
@@ -6535,9 +6513,12 @@ function init() {
         if (exists) {
             currentChapter = lastChapter;
             saveCurrent();
+            // 刷新界面显示
+            renderTree();
+            renderRecords();
         }
     }
-    
+}, 100);
     
     // 清理重复笔记
     const seen = new Map();
@@ -6560,6 +6541,42 @@ function init() {
     }
     migrateOldNotes(); 
     loadCurrent(); 
+
+// 清除所有保存的展开状态
+    localStorage.removeItem('expanded_china');
+    localStorage.removeItem('expanded_world');
+    localStorage.removeItem('expanded_shijing');
+    localStorage.removeItem('expanded_lunyu');
+    localStorage.removeItem('expanded_tangshi');
+    localStorage.removeItem('expanded_songci');
+    
+    // 重新计算当前章节的父级路径
+    expandedNodes.clear();
+    const currentTree = getCurrentTree();
+    const targetName = currentChapter;
+    const parentIds = [];
+    
+    function findParentIds(nodes, target, parents = []) {
+        for (let node of nodes) {
+            if (node.name === target) {
+                parents.forEach(p => {
+                    if (p.id) parentIds.push(p.id);
+                });
+                return true;
+            }
+            if (node.children) {
+                const found = findParentIds(node.children, target, [...parents, node]);
+                if (found) return true;
+            }
+        }
+        return false;
+    }
+    
+    findParentIds(currentTree, targetName);
+    parentIds.forEach(id => expandedNodes.add(id));
+    
+
+
     loadExpandedStateForCurrentClassic();
     bindEvents(); 
     bindLifespanEvents();  
@@ -6577,6 +6594,43 @@ function init() {
         if (appContainer) appContainer.style.height = '100vh';
     }, 100);
     
+
+
+// 在 init() 函数末尾，showMsg 之前添加
+setTimeout(() => {
+    if (currentClassic === 'shijing') {
+        // 强制收起所有
+        document.querySelectorAll('.children-container').forEach(el => {
+            el.classList.remove('open');
+        });
+        document.querySelectorAll('.chevron').forEach(el => {
+            el.classList.remove('open');
+        });
+        
+        // 只展开国风和邶风
+        const headers = document.querySelectorAll('.level-1, .level-2');
+        headers.forEach(header => {
+            const text = header.textContent;
+            if (text && (text.includes('国风') || text.includes('邶风'))) {
+                const container = header.nextElementSibling;
+                const chev = header.querySelector('.chevron');
+                if (container && container.classList) {
+                    container.classList.add('open');
+                    if (chev) chev.classList.add('open');
+                }
+            }
+        });
+        
+        // 同时更新 expandedNodes
+        expandedNodes.clear();
+        expandedNodes.add('sj_feng');
+        expandedNodes.add('sj_beifeng');
+        localStorage.setItem('expanded_shijing', JSON.stringify(['sj_feng', 'sj_beifeng']));
+        
+        console.log('✅ 诗经目录已强制修复');
+    }
+}, 150);
+
     showMsg('历史文库已就绪 — 点击卡片正文编辑，点击标签跳转'); 
 // ========== 首次打开自动从云端恢复 ==========
 // ========== 打开时从云端合并数据（不覆盖本地） ==========
