@@ -4850,6 +4850,8 @@ function renderCatalogTree(resetCollapsed = false) {
                 showMsg(updatedCount > 0 
                     ? `✅ 已重命名「${oldName}」为「${newNameTrimmed}」，并同步了 ${updatedCount} 条笔记` 
                     : `✅ 目录已重命名「${oldName}」为「${newNameTrimmed}」`);
+
+                    autoSyncToGist();
             }
         };
         leftArea.appendChild(nameSpan);
@@ -4873,6 +4875,7 @@ function renderCatalogTree(resetCollapsed = false) {
                 renderTree();
                 renderCatalogTree();
                 showMsg(`已添加「${subName}」到「${node.name}」`);
+                autoSyncToGist(); 
             }
         };
         
@@ -4902,6 +4905,7 @@ function renderCatalogTree(resetCollapsed = false) {
                 renderTree();
                 renderCatalogTree();
                 showMsg(`已删除「${node.name}」`);
+                autoSyncToGist(); 
             }
         };
         
@@ -6111,6 +6115,7 @@ function bindEvents() {
             renderCatalogTree();
             document.getElementById('newRootName').value = '';
             showMsg(`已添加「${newName}」`);
+            autoSyncToGist(); 
         };
     }
 }
