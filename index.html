@@ -1680,6 +1680,49 @@ select:focus,
     box-shadow: 0 0 0 2px #61A2DA20 !important;
     border-color: #61A2DA !important;
 }
+
+/* 冲突检测弹窗样式 */
+.conflict-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(8px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.conflict-dialog {
+    background: white;
+    border-radius: 20px;
+    max-width: 500px;
+    width: 90%;
+    padding: 24px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.conflict-dialog h3 { font-size: 20px; font-weight: 600; margin-bottom: 12px; color: #1c1c1e; }
+.conflict-dialog .diff-info { background: #f2f2f6; border-radius: 12px; padding: 16px; margin: 16px 0; }
+.conflict-dialog .diff-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 0.5px solid #e5e5ea; }
+.conflict-dialog .diff-item:last-child { border-bottom: none; }
+.conflict-dialog .diff-label { font-weight: 500; color: #3a3a44; }
+.conflict-dialog .diff-value { color: #61A2DA; font-weight: 600; }
+.conflict-actions { display: flex; gap: 12px; margin-top: 20px; }
+.conflict-actions button { flex: 1; padding: 12px; border-radius: 12px; font-weight: 600; font-size: 15px; cursor: pointer; border: none; }
+.btn-restore { background: #61A2DA; color: white; }
+.btn-upload { background: #34c759; color: white; }
+.btn-cancel-sync { background: #e5e5ea; color: #8e8e93; }
+
     </style>
 </head>
 <body>
@@ -4654,6 +4697,7 @@ function renderTagsList() {
                     switchClassic('china');
                 }
                 renderTagsList();
+                 autoSyncToGist();  
                 showMsg(`已删除「${item.name}」`);
             }
         };
@@ -4709,6 +4753,7 @@ function addNewTag() {
     
     document.getElementById('newTagName').value = '';
     renderTagsList();
+    autoSyncToGist();
     showMsg(`已添加「${newName}」标签`);
 }
 
@@ -4985,6 +5030,7 @@ function renderNode(parentEl, node, level) {
                     expandedNodes.add(node.id);
                     renderTree();
                     showMsg(`✅ 已添加「${subName}」到「${node.name}」`);
+                    autoSyncToGist();
                 }
             });
         });
@@ -6390,6 +6436,73 @@ function autoSyncToGist(showTip = false) {
     }, 5000);
 }
 
+// 获取数据的哈希值
+async function getDataHash(data) {
+    const str = JSON.stringify(data);
+    const encoder = new TextEncoder();
+    const dataBuffer = encoder.encode(str);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// 显示冲突弹窗
+function showConflictDialog(cloudData, localData, onChoice) {
+    const existingModal = document.querySelector('.conflict-modal');
+    if (existingModal) existingModal.remove();
+    
+    const localNotesCount = localData.notes?.length || 0;
+    const cloudNotesCount = cloudData.notes?.length || 0;
+    const localTreesCount = Object.keys(localData.trees || {}).length;
+    const cloudTreesCount = Object.keys(cloudData.trees || {}).length;
+    
+    const modal = document.createElement('div');
+    modal.className = 'conflict-modal';
+    modal.innerHTML = `
+        <div class="conflict-dialog">
+            <h3>⚠️ 发现数据冲突</h3>
+            <p style="color: #666; margin-bottom: 8px;">本地与云端数据不一致，请选择：</p>
+            <div class="diff-info">
+                <div class="diff-item">
+                    <span class="diff-label">📝 本地笔记</span>
+                    <span class="diff-value">${localNotesCount} 条</span>
+                </div>
+                <div class="diff-item">
+                    <span class="diff-label">☁️ 云端笔记</span>
+                    <span class="diff-value">${cloudNotesCount} 条</span>
+                </div>
+                <div class="diff-item">
+                    <span class="diff-label">📁 本地分类</span>
+                    <span class="diff-value">${localTreesCount} 个</span>
+                </div>
+                <div class="diff-item">
+                    <span class="diff-label">☁️ 云端分类</span>
+                    <span class="diff-value">${cloudTreesCount} 个</span>
+                </div>
+            </div>
+            <div class="conflict-actions">
+                <button class="btn-restore">📥 从云端恢复</button>
+                <button class="btn-upload">📤 上传到云端</button>
+                <button class="btn-cancel-sync">暂不处理</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    modal.querySelector('.btn-restore').onclick = () => {
+        modal.remove();
+        onChoice('restore');
+    };
+    modal.querySelector('.btn-upload').onclick = () => {
+        modal.remove();
+        onChoice('upload');
+    };
+    modal.querySelector('.btn-cancel-sync').onclick = () => {
+        modal.remove();
+        onChoice('cancel');
+    };
+}
 function init() { 
     localStorage.setItem('return_stack', JSON.stringify([]));
     localStorage.removeItem('return_classic');
@@ -6462,76 +6575,93 @@ function init() {
     showMsg('历史文库已就绪 — 点击卡片正文编辑，点击标签跳转'); 
 // ========== 首次打开自动从云端恢复 ==========
 // ========== 打开时从云端合并数据（不覆盖本地） ==========
+// 新的智能冲突检测（每天第一次打开）
 setTimeout(async () => {
     const token = localStorage.getItem(PAGE_ID + '_github_token');
     const gistId = localStorage.getItem(PAGE_ID + '_gist_id');
     
-    if (!token || !gistId) return;
-    
-    // 检查今天是否已经合并过
-    const today = new Date().toISOString().split('T')[0];
-    const lastMergeDate = localStorage.getItem(LAST_MERGE_DATE_KEY);
-    
-    if (lastMergeDate === today) {
-        console.log('📅 今天已经合并过云端数据，跳过');
+    if (!token || !gistId) {
+        console.log('未配置 Gist，跳过冲突检测');
         return;
     }
     
-    console.log('🔄 正在从云端合并数据...');
-    showMsg('☁️ 正在同步云端数据...');
+    // 检查今天是否已经检测过
+    const today = new Date().toISOString().split('T')[0];
+    const lastCheckDate = localStorage.getItem(PAGE_ID + '_last_conflict_check');
+    
+    if (lastCheckDate === today) {
+        console.log('📅 今天已经检测过，跳过');
+        return;
+    }
+    
+    console.log('🔍 正在检测云端数据差异...');
     
     try {
         const res = await fetch(`https://api.github.com/gists/${gistId}`, {
             headers: { 'Authorization': `token ${token}` }
         });
-        if (res.ok) {
-            const gistData = await res.json();
-            const firstFile = gistData.files[Object.keys(gistData.files)[0]];
-            if (firstFile?.content) {
-                const backupData = JSON.parse(firstFile.content);
-                let addedCount = 0;
-                let updatedCount = 0;
-                
-                // 合并笔记（按更新时间判断，保留最新版本）
-                if (backupData.notes && Array.isArray(backupData.notes)) {
-                    for (const cloudNote of backupData.notes) {
-                        const key = `${cloudNote.classic}|${cloudNote.chapter}`;
-                        const existingIndex = notes.findIndex(n => `${n.classic}|${n.chapter}` === key);
-                        
-                        if (existingIndex === -1) {
-                            notes.push(cloudNote);
-                            addedCount++;
-                        } else {
-                            const localNote = notes[existingIndex];
-                            const localTime = new Date(localNote.updatedAt || localNote.createdAt || '1970-01-01');
-                            const cloudTime = new Date(cloudNote.updatedAt || cloudNote.createdAt || '1970-01-01');
-                            
-                            if (cloudTime > localTime) {
-                                notes[existingIndex] = cloudNote;
-                                updatedCount++;
-                            }
-                        }
-                    }
-                    
-                    if (addedCount > 0 || updatedCount > 0) {
-                        saveNotes();
-                        console.log(`✅ 云端合并完成: 新增 ${addedCount} 条，更新 ${updatedCount} 条`);
-                        renderTree();
-                        renderRecords();
-                        showMsg(`📦 已同步: 新增 ${addedCount} 条，更新 ${updatedCount} 条`);
-                    } else {
-                        console.log('📦 云端数据已是最新');
-                    }
-                }
-                
-                // 记录今天已合并
-                localStorage.setItem(LAST_MERGE_DATE_KEY, today);
-            }
+        
+        if (!res.ok) throw new Error(`获取失败: ${res.status}`);
+        
+        const gistData = await res.json();
+        const firstFile = gistData.files[Object.keys(gistData.files)[0]];
+        const cloudData = JSON.parse(firstFile.content);
+        
+        const localData = { notes: notes, trees: trees };
+        
+        const localHash = await getDataHash(localData);
+        const cloudHash = await getDataHash(cloudData);
+        
+        if (localHash === cloudHash) {
+            console.log('✅ 本地与云端数据一致');
+            localStorage.setItem(PAGE_ID + '_last_conflict_check', today);
+            return;
         }
-    } catch (err) {
-        console.log('云端合并失败:', err);
+        
+        console.log('⚠️ 检测到数据差异，显示弹窗');
+        
+        showConflictDialog(cloudData, localData, async (choice) => {
+            if (choice === 'restore') {
+                notes = cloudData.notes;
+                trees = cloudData.trees;
+                saveNotes();
+                saveTrees();
+                renderTree();
+                renderRecords();
+                showMsg('✅ 已从云端恢复数据');
+            } else if (choice === 'upload') {
+                const backupData = {
+                    version: '1.0',
+                    backupTime: new Date().toISOString(),
+                    notes: notes,
+                    trees: trees
+                };
+                
+                const gistRes = await fetch(`https://api.github.com/gists/${gistId}`, {
+                    headers: { 'Authorization': `token ${token}` }
+                });
+                const gistInfo = await gistRes.json();
+                const filename = Object.keys(gistInfo.files)[0];
+                
+                await fetch(`https://api.github.com/gists/${gistId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        files: { [filename]: { content: JSON.stringify(backupData, null, 2) } }
+                    })
+                });
+                showMsg('✅ 已上传本地数据到云端');
+            }
+            localStorage.setItem(PAGE_ID + '_last_conflict_check', today);
+        });
+        
+    } catch(err) {
+        console.error('冲突检测失败:', err);
     }
-}, 500);
+}, 1000);
 
 
 
